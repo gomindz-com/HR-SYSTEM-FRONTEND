@@ -29,5 +29,20 @@ export type Company = {
   companyAddress: string;
   hrId: number;
   companyDescription: string;
-  createdAt: string; // ISO date string
+  createdAt: string;
+};
+
+
+export type CompanyHRSignUpRequest = {
+  companyName: string;
+  companyEmail: string;
+  companyTin: string;
+  companyAddress: string;
+  companyDescription: string;
+  HRName: string;
+  HRPhone: string;
+  HRAddress: string;
+  HREmail: string;
+  HRPassword: string;
+  confirmHRPassword: string;
 };

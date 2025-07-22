@@ -86,6 +86,8 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
+      
+
       <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2">

@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { Company, Employee } from "../src/lib/type.ts";
+import { Company, CompanyHRSignUpRequest, Employee } from "../src/lib/type.ts";
 import { axiosInstance } from "../src/lib/axios.ts";
 import { toast } from "react-hot-toast";
 
 interface AuthStore {
-  companySignUp: (data: Company) => Promise<boolean>;
+  companySignUp: (data: CompanyHRSignUpRequest) => Promise<boolean>;
   signingUp: boolean;
   login: (data: { email: string; password: string }) => Promise<boolean>;
   loggingIn: boolean;
@@ -12,20 +12,20 @@ interface AuthStore {
   loggingOut: boolean;
   checkAuth: () => Promise<void>;
   checkingAuth: boolean;
-  forgotPassword: (data: { email: string }) => Promise<void>;
+  forgotPassword: (data: { email: string }) => Promise<boolean>;
   forgotPasswordLoading: boolean;
   resetPassword: (data: {
     password: string;
     confirmPassword: string;
     token: string;
-  }) => Promise<void>;
+  }) => Promise<boolean>;
   resetPasswordLoading: boolean;
   authUser: Employee | null;
   sendInvitation: (data: {
     email: string;
     role: string;
     position: string;
-  }) => Promise<void>;
+  }) => Promise<boolean>;
   sendingInvitation: boolean;
   acceptInvitation: (data: {
     token: string;
@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return true;
     } catch (error) {
       set({ signingUp: false });
-      toast.error("Failed to sign up company");
+      toast.error(error.response.data.message || "Failed to sign up company");
       return false;
     }
   },
@@ -67,7 +67,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return true;
     } catch (error) {
       set({ loggingIn: false });
-      toast.error("Failed to login");
+      toast.error(error.response.data.message || "Failed to login");
+      console.log(error.response.data.message);
       return false;
     } finally {
       set({ loggingIn: false });
@@ -98,16 +99,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     } finally {
       set({ checkingAuth: false });
     }
-  },
+  },  
   forgotPassword: async (data) => {
     set({ forgotPasswordLoading: true });
     try {
       const response = await axiosInstance.post("/auth/forgot-password", data);
       set({ forgotPasswordLoading: false });
       toast.success("Password reset email sent");
+      return true
     } catch (error) {
+      return false
       set({ forgotPasswordLoading: false });
-      toast.error("Failed to send password reset email");
+      toast.error(error.response.data.message ||"Failed to send password reset email");
     }
   },
   resetPassword: async (data) => {
@@ -119,10 +122,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         { newPassword: data.password }
       );
       set({ resetPasswordLoading: false });
-      toast.success("Password reset successfully");
+      toast.success("Password reset successfully")
+      return true
     } catch (error) {
       set({ resetPasswordLoading: false });
-      toast.error("Failed to reset password");
+      toast.error(error.response.data.message || "Failed to reset password");
+      return false
     } finally {
       set({ resetPasswordLoading: false });
     }
@@ -136,9 +141,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       );
       set({ sendingInvitation: false });
       toast.success("Invitation sent successfully");
-    } catch (error) {
+      return true
+    } catch (error) { 
       set({ sendingInvitation: false });
-      toast.error("Failed to send invitation");
+      toast.error(error.response.data.message || "Failed to send invitation");
+      return false
     } finally {
       set({ sendingInvitation: false });
     }
@@ -169,3 +176,4 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 }));
+

@@ -35,6 +35,18 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuthStore } from "../../store/useAuthStore";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 // Mock employee data
 const employees = [
@@ -148,21 +160,26 @@ const departments = [
 ];
 const statuses = ["All Statuses", "Active", "On Leave", "Inactive"];
 
+const inviteFormSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(["EMPLOYEE", "DIRECTOR", "HR"]),
+  position: z.string().min(1, "Position is required"),
+});
+
 export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] =
     useState("All Departments");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    position: "",
-    department: departments[1],
-    location: "",
-    startDate: "",
-    status: statuses[1],
+  const { sendInvitation, sendingInvitation } = useAuthStore();
+  const inviteForm = useForm<z.infer<typeof inviteFormSchema>>({
+    defaultValues: {
+      email: "",
+      role: "EMPLOYEE",
+      position: "",
+    },
+    resolver: zodResolver(inviteFormSchema),
   });
   const [employeesList, setEmployeesList] = useState(employees);
   const { toast } = useToast();
@@ -186,9 +203,9 @@ export default function EmployeesPage() {
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "Active":
-        return "success";
+        return "secondary";
       case "On Leave":
-        return "warning";
+        return "outline";
       case "Inactive":
         return "destructive";
       default:
@@ -212,165 +229,99 @@ export default function EmployeesPage() {
           <DialogTrigger asChild>
             <Button className="bg-gradient-primary hover:opacity-90 transition-opacity">
               <Plus className="w-4 h-4 mr-2" />
-              Add Employee
+              Invite Employee
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add Employee</DialogTitle>
+              <DialogTitle>Invite Employee</DialogTitle>
             </DialogHeader>
-            <form
-              className="grid gap-4 py-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setEmployeesList((list) => [
-                  {
-                    ...form,
-                    id: Date.now(),
-                    avatar: form.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase(),
-                  },
-                  ...list,
-                ]);
-                setDialogOpen(false);
-                setForm({
-                  name: "",
-                  email: "",
-                  phone: "",
-                  position: "",
-                  department: departments[1],
-                  location: "",
-                  startDate: "",
-                  status: statuses[1],
-                });
-                toast({
-                  title: "Employee Added",
-                  description: `${form.name} was added successfully!`,
-                });
-              }}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={form.name}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, name: e.target.value }))
+            <Form {...inviteForm}>
+              <form
+                className="grid gap-4 py-4"
+                onSubmit={inviteForm.handleSubmit(async (data) => {
+                  try {
+                    const success = await sendInvitation({
+                      email: data.email,
+                      role: data.role,
+                      position: data.position,
+                    });
+                    if(success){
+                    setDialogOpen(false);
+                    inviteForm.reset();
+                    
                     }
-                    placeholder="Full name"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, email: e.target.value }))
-                    }
-                    placeholder="Email address"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={form.phone}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, phone: e.target.value }))
-                    }
-                    placeholder="Phone number"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="position">Position</Label>
-                  <Input
-                    id="position"
-                    value={form.position}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, position: e.target.value }))
-                    }
-                    placeholder="Job title"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="department">Department</Label>
-                  <Select
-                    value={form.department}
-                    onValueChange={(val) =>
-                      setForm((f) => ({ ...f, department: val }))
-                    }
-                  >
-                    <SelectTrigger id="department">
-                      <SelectValue placeholder="Department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments.slice(1).map((dept) => (
-                        <SelectItem key={dept} value={dept}>
-                          {dept}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={form.location}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, location: e.target.value }))
-                    }
-                    placeholder="Location"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={form.startDate}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, startDate: e.target.value }))
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={form.status}
-                    onValueChange={(val) =>
-                      setForm((f) => ({ ...f, status: val }))
-                    }
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statuses.slice(1).map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Save Employee</Button>
-              </DialogFooter>
-            </form>
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "Failed to send invitation.",
+                      variant: "destructive",
+                    });
+                  }
+                })}
+              >
+                <FormField
+                  control={inviteForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Email address"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={inviteForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                            <SelectItem value="DIRECTOR">Director</SelectItem>
+                            <SelectItem value="HR">HR</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={inviteForm.control}
+                  name="position"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Position</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Position" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="submit" disabled={sendingInvitation}>
+                    {sendingInvitation ? "Sending..." : "Send Invitation"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
@@ -482,8 +433,8 @@ export default function EmployeesPage() {
                   <Badge
                     variant={
                       getStatusVariant(employee.status) as
-                        | "success"
-                        | "warning"
+                        | "default"
+                        | "outline"
                         | "destructive"
                         | "secondary"
                     }
