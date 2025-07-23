@@ -32,6 +32,7 @@ import AcceptInvitationPage from "./pages/AcceptInvitationPage";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
+import { AttendanceQrDisplayPage } from "./pages/AttendanceQRDisplayPage";
 
 function ProtectedRoute({ children }) {
   const { checkingAuth, authUser } = useAuthStore();
@@ -42,12 +43,25 @@ function ProtectedRoute({ children }) {
       </div>
     );
   }
-  if (!authUser) {
-    return <Navigate to="/login" />;
-  }
   return children;
 }
 
+function FullScreenLayout({ children }) {
+  const { checkingAuth } = useAuthStore();
+
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
+  return (
+    <div className="min-h-screen w-full bg-background">
+      {children}
+    </div>
+  );
+}
 const queryClient = new QueryClient();
 
 function AppLayout({ children }) {
@@ -108,10 +122,15 @@ function App() {
         }}
       />
       <Routes>
-        {/* Public and Auth Routes */}
+        {/* Public and Auth Routes */} 
+        <Route path="/" element={<HomePage />} />
         <Route
-          path="/"
-          element={ <HomePage />}
+          path="/attendance-qr"
+          element={
+            <FullScreenLayout>
+              <AttendanceQrDisplayPage />
+            </FullScreenLayout>
+          }
         />
         <Route
           path="/login"
