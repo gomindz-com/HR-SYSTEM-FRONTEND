@@ -46,3 +46,13 @@ export type CompanyHRSignUpRequest = {
   HRPassword: string;
   confirmHRPassword: string;
 };
+
+
+export type Department = {
+  id: number;
+  name: string;
+  managerId: number;
+  companyId: number;
+  createdAt: string;
+  updatedAt: string;
+}

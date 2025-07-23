@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Search,
   Filter,
@@ -7,6 +7,8 @@ import {
   Mail,
   Phone,
   MapPin,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +49,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { createPortal } from "react-dom";
 
 // Mock employee data
 const employees = [
@@ -164,7 +180,42 @@ const inviteFormSchema = z.object({
   email: z.string().email(),
   role: z.enum(["EMPLOYEE", "DIRECTOR", "HR"]),
   position: z.string().min(1, "Position is required"),
+  departmentId: z.number({ required_error: "Department is required" }),
 });
+
+const departmentFormSchema = z.object({
+  name: z.string().min(1, "Department name is required"),
+});
+
+// Custom Modal for Add Department
+function CustomModal({ open, onClose, children }) {
+  if (!open) return null;
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      tabIndex={-1}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <div className="bg-white dark:bg-background rounded-lg shadow-lg p-6 min-w-[400px] max-w-[520px] relative">
+        <button
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-white"
+          onClick={onClose}
+        >
+          <span className="sr-only">Close</span>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+            <path
+              stroke="currentColor"
+              strokeWidth="2"
+              d="M6 6l12 12M6 18L18 6"
+            />
+          </svg>
+        </button>
+        {children}
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -172,17 +223,45 @@ export default function EmployeesPage() {
     useState("All Departments");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { sendInvitation, sendingInvitation } = useAuthStore();
+  const [newDepartment, setNewDepartment] = useState("");
+  const [addingDepartment, setAddingDepartment] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [departmentModalOpen, setDepartmentModalOpen] = useState(false);
+
+  // grab from your auth store
+  const {
+    departments: authDepartments,
+    fetchDepartments,
+    addDepartment, // this creates & appends
+    sendInvitation,
+    sendingInvitation,
+  } = useAuthStore();
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
+
   const inviteForm = useForm<z.infer<typeof inviteFormSchema>>({
     defaultValues: {
       email: "",
       role: "EMPLOYEE",
       position: "",
+      departmentId: undefined,
     },
     resolver: zodResolver(inviteFormSchema),
   });
   const [employeesList, setEmployeesList] = useState(employees);
   const { toast } = useToast();
+
+  // Inline department add handler (no popover state)
+  async function handleAddDepartment() {
+    if (!newDepartment.trim()) return;
+    setAddingDepartment(true);
+    await addDepartment(newDepartment);
+    setNewDepartment("");
+    setAddingDepartment(false);
+    setDepartmentModalOpen(false);
+  }
 
   const filteredEmployees = employeesList.filter((employee) => {
     const matchesSearch =
@@ -225,105 +304,13 @@ export default function EmployeesPage() {
             Manage and view all employees in your organization
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-primary hover:opacity-90 transition-opacity">
-              <Plus className="w-4 h-4 mr-2" />
-              Invite Employee
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Invite Employee</DialogTitle>
-            </DialogHeader>
-            <Form {...inviteForm}>
-              <form
-                className="grid gap-4 py-4"
-                onSubmit={inviteForm.handleSubmit(async (data) => {
-                  try {
-                    const success = await sendInvitation({
-                      email: data.email,
-                      role: data.role,
-                      position: data.position,
-                    });
-                    if(success){
-                    setDialogOpen(false);
-                    inviteForm.reset();
-                    
-                    }
-                  } catch (error) {
-                    toast({
-                      title: "Error",
-                      description: "Failed to send invitation.",
-                      variant: "destructive",
-                    });
-                  }
-                })}
-              >
-                <FormField
-                  control={inviteForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Email address"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={inviteForm.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="EMPLOYEE">Employee</SelectItem>
-                            <SelectItem value="DIRECTOR">Director</SelectItem>
-                            <SelectItem value="HR">HR</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={inviteForm.control}
-                  name="position"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Position</FormLabel>
-                      <FormControl>
-                        <Input type="text" placeholder="Position" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <Button type="submit" disabled={sendingInvitation}>
-                    {sendingInvitation ? "Sending..." : "Send Invitation"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <Button
+          className="bg-gradient-primary hover:opacity-90 transition-opacity"
+          onClick={() => setInviteModalOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Invite Employee
+        </Button>
       </div>
 
       {/* Search and Filters */}
@@ -341,22 +328,6 @@ export default function EmployeesPage() {
             </div>
 
             <div className="flex gap-3">
-              <Select
-                value={selectedDepartment}
-                onValueChange={setSelectedDepartment}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Status" />
@@ -487,6 +458,217 @@ export default function EmployeesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Custom Invite Modal */}
+      <CustomModal
+        open={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+      >
+        <h2 className="text-xl font-bold mb-2">Invite Employee</h2>
+        <p className="text-muted-foreground mb-4">
+          Fill out the form to invite a new employee.
+        </p>
+        <Form {...inviteForm}>
+          <form
+            className="grid gap-4 py-4"
+            onSubmit={inviteForm.handleSubmit(async (data) => {
+              try {
+                const success = await sendInvitation({
+                  email: data.email,
+                  role: data.role,
+                  position: data.position,
+                  departmentId: data.departmentId,
+                });
+                if (success) {
+                  setInviteModalOpen(false);
+                  inviteForm.reset();
+                }
+              } catch (error) {
+                toast({
+                  title: "Error",
+                  description: "Failed to send invitation.",
+                  variant: "destructive",
+                });
+              }
+            })}
+          >
+            <FormField
+              control={inviteForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Email address"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={inviteForm.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                        <SelectItem value="DIRECTOR">Director</SelectItem>
+                        <SelectItem value="HR">HR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={inviteForm.control}
+              name="position"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Position</FormLabel>
+                  <FormControl>
+                    <Input type="text" placeholder="Position" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={inviteForm.control}
+              name="departmentId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Department</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={
+                            !field.value
+                              ? "justify-between text-sm font-normal text-muted-foreground"
+                              : "justify-between text-sm font-normal"
+                          }
+                        >
+                          {field.value
+                            ? authDepartments.find(
+                                (dep) => dep.id === field.value
+                              )?.name
+                            : "Select department"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0">
+                      <Command>
+                        <div className="flex items-center border-b px-3">
+                          <CommandInput
+                            placeholder="Search department..."
+                            className="border-0 py-3 h-9"
+                          />
+                          {/* Custom Modal Trigger for Add Department */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            className="h-8 w-8 ml-1"
+                            onClick={() => setDepartmentModalOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <CommandList>
+                          <CommandEmpty>No departments found.</CommandEmpty>
+                          <CommandGroup>
+                            {authDepartments.map((dep) => (
+                              <CommandItem
+                                key={dep.id}
+                                value={dep.name}
+                                onSelect={() => {
+                                  inviteForm.setValue("departmentId", dep.id, {
+                                    shouldValidate: true,
+                                  });
+                                }}
+                              >
+                                <Check
+                                  className={
+                                    dep.id === field.value
+                                      ? "mr-2 h-4 w-4 opacity-100"
+                                      : "mr-2 h-4 w-4 opacity-0"
+                                  }
+                                />
+                                {dep.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <Button type="submit" disabled={sendingInvitation}>
+                {sendingInvitation ? "Sending..." : "Send Invitation"}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setInviteModalOpen(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CustomModal>
+
+      {/* Custom Department Modal */}
+      <CustomModal
+        open={departmentModalOpen}
+        onClose={() => setDepartmentModalOpen(false)}
+      >
+        <h2 className="text-lg font-semibold mb-2">Add New Department</h2>
+        <p className="text-muted-foreground text-sm mb-4">
+          Give your new department a name.
+        </p>
+        <Input
+          placeholder="Enter department name"
+          value={newDepartment}
+          onChange={(e) => setNewDepartment(e.target.value)}
+          disabled={addingDepartment}
+        />
+        <div className="flex gap-2 justify-end pt-2">
+          <Button
+            className="bg-[#4A00E0] hover:bg-[#4A00E0]/70 text-white"
+            disabled={!newDepartment.trim() || addingDepartment}
+            onClick={handleAddDepartment}
+          >
+            {addingDepartment ? "Adding..." : "Add Department"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setDepartmentModalOpen(false)}
+            disabled={addingDepartment}
+          >
+            Cancel
+          </Button>
+        </div>
+      </CustomModal>
     </div>
   );
 }

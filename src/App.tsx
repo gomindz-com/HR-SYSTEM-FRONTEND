@@ -2,7 +2,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import Index from "./pages/Index";
 import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
@@ -22,6 +28,25 @@ import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import HomePage from "./pages/HomePage";
+import AcceptInvitationPage from "./pages/AcceptInvitationPage";
+import { useAuthStore } from "../store/useAuthStore";
+import { useEffect, useState } from "react";
+import { Loader } from "lucide-react";
+
+function ProtectedRoute({ children }) {
+  const { checkingAuth, authUser } = useAuthStore();
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
+  if (!authUser) {
+    return <Navigate to="/login" />;
+  }
+  return children;
+}
 
 const queryClient = new QueryClient();
 
@@ -46,22 +71,24 @@ function matchPathPattern(pattern, path) {
 }
 
 function App() {
-  const location = useLocation();
-  // list routes without header/sidebar
-  const minimalLayoutRoutes = [
-    "/company-signup",
-    "/login",
-    "/forgot-password",
-    "/reset-password/:token",
-    "/",
-  ];
-  const isMinimal = minimalLayoutRoutes.some((pattern) =>
-    matchPathPattern(pattern, location.pathname)
-  );
+  const { checkAuth, checkingAuth, authUser } = useAuthStore();
 
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Show loader while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
+
+  // Only render routes after auth check is complete
   return (
     <div className="flex-1 flex flex-col">
-      {/* Global Toaster */}
       <Toaster
         position="top-right"
         toastOptions={{
@@ -80,40 +107,181 @@ function App() {
           },
         }}
       />
-
-      {isMinimal ? (
-        <main className="">
-          <Routes>
-            <Route path="/company-signup" element={<CompanySignup />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route
-              path="/reset-password/:token"
-              element={<ResetPasswordPage />}
-            />
-            <Route path="/" element={<HomePage />} />
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-      ) : (
-        <AppLayout>
-          <main className="flex-1 p-6 overflow-auto">
-            <Routes>
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/employees" element={<EmployeesPage />} />
-              <Route path="/attendance" element={<AttendancePage />} />
-              <Route path="/leave" element={<LeavePage />} />
-              <Route path="/performance" element={<PerformancePage />} />
-              <Route path="/payroll" element={<PayrollPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Routes>
-          </main>
-        </AppLayout>
-      )}
+      <Routes>
+        {/* Public and Auth Routes */}
+        <Route
+          path="/"
+          element={ <HomePage />}
+        />
+        <Route
+          path="/login"
+          element={!authUser ? <LoginPage /> : <Navigate to="/dashboard" />}
+        />
+        <Route
+          path="/company-signup"
+          element={!authUser ? <CompanySignup /> : <Navigate to="/dashboard" />}
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            !authUser ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            !authUser ? <ResetPasswordPage /> : <Navigate to="/dashboard" />
+          }
+        />
+        <Route
+          path="/accept-invitation/:token"
+          element={
+            !authUser ? <AcceptInvitationPage /> : <Navigate to="/dashboard" />
+          }
+        />
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <Index />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/employees"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <EmployeesPage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/attendance"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <AttendancePage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/leave"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <LeavePage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/performance"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <PerformancePage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/payroll"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <PayrollPage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <ReportsPage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <AnalyticsPage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <NotificationsPage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            authUser ? (
+              <AppLayout>
+                <main className="flex-1 p-6 overflow-auto">
+                  <SettingsPage />
+                </main>
+              </AppLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </div>
   );
 }

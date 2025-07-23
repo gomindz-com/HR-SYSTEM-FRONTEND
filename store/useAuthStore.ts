@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import { Company, CompanyHRSignUpRequest, Employee } from "../src/lib/type.ts";
+import {
+  CompanyHRSignUpRequest,
+  Department,
+  Employee,
+} from "../src/lib/type.ts";
 import { axiosInstance } from "../src/lib/axios.ts";
 import { toast } from "react-hot-toast";
 
@@ -25,6 +29,7 @@ interface AuthStore {
     email: string;
     role: string;
     position: string;
+    departmentId: number;
   }) => Promise<boolean>;
   sendingInvitation: boolean;
   acceptInvitation: (data: {
@@ -32,8 +37,12 @@ interface AuthStore {
     password: string;
     name: string;
     position?: string;
-  }) => Promise<void>;
+    departmentId?: number;
+  }) => Promise<boolean>;
   acceptingInvitation: boolean;
+  departments: Department[];
+  fetchDepartments: () => Promise<void>;
+  addDepartment: (name: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -46,6 +55,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   sendingInvitation: false,
   acceptingInvitation: false,
   authUser: null,
+  departments: [],
 
   companySignUp: async (data) => {
     set({ signingUp: true });
@@ -54,9 +64,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ authUser: response.data.data.newHR });
       return true;
     } catch (error) {
-      set({ signingUp: false });
-      toast.error(error.response.data.message || "Failed to sign up company");
+      toast.error(error.response?.data?.message || "Failed to sign up company");
       return false;
+    } finally {
+      set({ signingUp: false });
     }
   },
   login: async (data) => {
@@ -66,9 +77,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ authUser: response.data.data.user });
       return true;
     } catch (error) {
-      set({ loggingIn: false });
-      toast.error(error.response.data.message || "Failed to login");
-      console.log(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to login");
       return false;
     } finally {
       set({ loggingIn: false });
@@ -92,25 +101,26 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ checkingAuth: true });
     try {
       const response = await axiosInstance.get("/auth/check-auth");
-      set({ authUser: response.data.user });
+      set({ authUser: response.data.data.user });
     } catch (error) {
-      set({ checkingAuth: false });
-      toast.error("Failed to check auth");
+      set({ authUser: null });
     } finally {
       set({ checkingAuth: false });
     }
-  },  
+  },
   forgotPassword: async (data) => {
     set({ forgotPasswordLoading: true });
     try {
       const response = await axiosInstance.post("/auth/forgot-password", data);
       set({ forgotPasswordLoading: false });
       toast.success("Password reset email sent");
-      return true
+      return true;
     } catch (error) {
-      return false
+      return false;
       set({ forgotPasswordLoading: false });
-      toast.error(error.response.data.message ||"Failed to send password reset email");
+      toast.error(
+        error.response.data.message || "Failed to send password reset email"
+      );
     }
   },
   resetPassword: async (data) => {
@@ -122,58 +132,95 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         { newPassword: data.password }
       );
       set({ resetPasswordLoading: false });
-      toast.success("Password reset successfully")
-      return true
+      toast.success("Password reset successfully");
+      return true;
     } catch (error) {
       set({ resetPasswordLoading: false });
       toast.error(error.response.data.message || "Failed to reset password");
-      return false
+      return false;
     } finally {
       set({ resetPasswordLoading: false });
     }
   },
-  sendInvitation: async (data) => {
+  fetchDepartments: async () => {
+    try {
+      const res = await axiosInstance.get("/department");
+      set({ departments: res.data.data });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to fetch departments"
+      );
+    }
+  },
+  addDepartment: async (name: string) => {
+    try {
+      // send { name } in body
+      const res = await axiosInstance.post("/department", { name });
+      const newDept = res.data.data;
+      toast.success("Department added");
+      // append the newly created department
+      set({ departments: [...get().departments, newDept] });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add department");
+    }
+  },
+  sendInvitation: async ({
+    email,
+    role,
+    position,
+    departmentId,
+  }: {
+    email: string;
+    role: string;
+    position: string;
+    departmentId: number;
+  }) => {
+    if (!departmentId) {
+      toast.error("Please select or add a department first");
+      return false;
+    }
     set({ sendingInvitation: true });
     try {
-      const response = await axiosInstance.post(
-        "/invitation/send-invitation",
-        data
-      );
-      set({ sendingInvitation: false });
+      await axiosInstance.post("/invitation/send-invitation", {
+        email,
+        role,
+        position,
+        departmentId,
+      });
       toast.success("Invitation sent successfully");
-      return true
-    } catch (error) { 
-      set({ sendingInvitation: false });
-      toast.error(error.response.data.message || "Failed to send invitation");
-      return false
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send invitation");
+      return false;
     } finally {
       set({ sendingInvitation: false });
     }
   },
-  acceptInvitation: async (data) => {
+  acceptInvitation: async ({
+    token,
+    name,
+    password,
+  }: {
+    token: string;
+    name: string;
+    password: string;
+  }) => {
     set({ acceptingInvitation: true });
     try {
-      // Backend expects: { name, password, confirmPassword, position }
-      const payload = {
-        name: data.name,
-        password: data.password,
-        confirmPassword: data.password, // assuming confirmPassword is same as password from frontend
-        position: data.position || "EMPLOYEE", // fallback if not provided
-      };
-      const response = await axiosInstance.post(
-        `/invitation/accept-invitation/${data.token}`,
-        payload
-      );
-      set({ acceptingInvitation: false });
-      toast.success(
-        "Invitation accepted successfully, please login to continue"
-      );
+      await axiosInstance.post(`/invitation/accept-invitation/${token}`, {
+        name,
+        password,
+        confirmPassword: password,
+      });
+      toast.success("Invitation accepted—please log in");
+      return true;
     } catch (error) {
-      set({ acceptingInvitation: false });
-      toast.error("Failed to accept invitation");
+      toast.error(
+        error.response?.data?.message || "Failed to accept invitation"
+      );
+      return false;
     } finally {
       set({ acceptingInvitation: false });
     }
   },
 }));
-

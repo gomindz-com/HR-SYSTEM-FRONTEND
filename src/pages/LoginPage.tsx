@@ -47,7 +47,7 @@ const LoginPage = () => {
       <div className="w-full h-full grid lg:grid-cols-[70%_30%]">
       <div className="max-w-lg m-auto w-full flex flex-col items-start py-6">
           <p className="mt-4 text-xl font-extrabold tracking-tight text-start mb-4 font-serif text-primary">
-            Sign up for HR Management System
+           Login to your HR Management System account
           </p>
           <Form {...form}>
             <form
