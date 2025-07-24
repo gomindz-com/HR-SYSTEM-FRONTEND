@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Calendar } from "@/components/ui/calendar";
-import { Clock, Search, Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Clock, Search, Plus, Calendar as CalendarIcon, QrCode } from "lucide-react";
 
 const mockAttendance = [
   {
@@ -162,6 +162,7 @@ const AttendancePage = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold text-foreground">
           Attendance & Time Tracking
@@ -169,6 +170,13 @@ const AttendancePage = () => {
         <p className="text-muted-foreground">
           Monitor employee attendance and manage time tracking
         </p>
+      </div>
+
+<a href="/attendance-qr" className="flex items-center gap-4 bg-primary  p-3 rounded-lg text-white hover:bg-primary/90 transition-colors">
+  <QrCode className="h-6 w-6" />
+  <span>Show QR Code</span>
+</a>
+
       </div>
 
       {/* Quick Stats */}
@@ -261,6 +269,7 @@ const AttendancePage = () => {
             </DialogContent>
           </Dialog>
         </div>
+        div
         <Dialog open={manualDialogOpen} onOpenChange={setManualDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">

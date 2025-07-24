@@ -48,7 +48,17 @@ function ProtectedRoute({ children }) {
 }
 
 function FullScreenLayout({ children }) {
-  const { checkingAuth } = useAuthStore();
+  const { checkAuth, authUser, checkingAuth } = useAuthStore();
+
+
+
+  // log the authuser on a use effect
+  useEffect(() => {
+    console.log("Auth User:", authUser);
+  }, [authUser]);
+
+
+  console.log("AuthUser", authUser);
 
   if (checkingAuth) {
     return (
@@ -124,18 +134,15 @@ function App() {
         <Route
           path="/attendance-qr"
           element={
-              <FullScreenLayout>
-                <AttendanceQrDisplayPage />
-              </FullScreenLayout>
+            <FullScreenLayout>
+              <AttendanceQrDisplayPage />
+            </FullScreenLayout>
           }
         />
 
         <Route
           path="/my-portal"
-          element={
-            <EmployeePortal/>
-          }
-            
+          element={<EmployeePortal />}
         />
         <Route
           path="/login"

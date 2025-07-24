@@ -16,7 +16,7 @@ export default defineConfig({
     proxy: {
       // Proxy any request starting with /api to your backend
       "/api": {
-        target: "http://172.20.10.2:5000",
+        target: "http://localhost:5000", // Adjust to your backend URL
         changeOrigin: true,
         secure: false,
         // ★ NO rewrite: keep the /api prefix intact
