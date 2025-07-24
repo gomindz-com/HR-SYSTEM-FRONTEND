@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAttendanceStore } from "../../store/useAttendanceStore";
 import { QRCodeSVG } from "qrcode.react";
 
-const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 2 minutes
 
 export const AttendanceQrDisplayPage: React.FC = () => {
   const generateQrToken = useAttendanceStore((s) => s.generateQrToken);
@@ -79,7 +79,7 @@ export const AttendanceQrDisplayPage: React.FC = () => {
                 </p>
               )}
               <p className="text-sm text-gray-500 mt-1">
-                QR code refreshes every 2 minutes
+                QR code refreshes every 5 minutes
               </p>
             </div>
           </div>
@@ -89,7 +89,7 @@ export const AttendanceQrDisplayPage: React.FC = () => {
             <h3 className="font-medium text-blue-800 mb-2">How to use:</h3>
             <ol className="text-sm text-blue-700 list-decimal pl-5 space-y-1">
               <li>Open your company's attendance app</li>
-              <li>Tap on the QR scanner icon</li>
+              <li>Tap on the check-in or check-out button</li>
               <li>Point your camera at this code</li>
               <li>Confirm your check-in/out in the app</li>
             </ol>

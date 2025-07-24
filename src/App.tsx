@@ -33,6 +33,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
 import { AttendanceQrDisplayPage } from "./pages/AttendanceQRDisplayPage";
+import EmployeePortal from "./pages/EmployeePortal";
 
 function ProtectedRoute({ children }) {
   const { checkingAuth, authUser } = useAuthStore();
@@ -56,11 +57,7 @@ function FullScreenLayout({ children }) {
       </div>
     );
   }
-  return (
-    <div className="min-h-screen w-full bg-background">
-      {children}
-    </div>
-  );
+  return <div className="min-h-screen w-full bg-background">{children}</div>;
 }
 const queryClient = new QueryClient();
 
@@ -122,15 +119,23 @@ function App() {
         }}
       />
       <Routes>
-        {/* Public and Auth Routes */} 
+        {/* Public and Auth Routes */}
         <Route path="/" element={<HomePage />} />
         <Route
           path="/attendance-qr"
           element={
-            <FullScreenLayout>
-              <AttendanceQrDisplayPage />
-            </FullScreenLayout>
+              <FullScreenLayout>
+                <AttendanceQrDisplayPage />
+              </FullScreenLayout>
           }
+        />
+
+        <Route
+          path="/my-portal"
+          element={
+            <EmployeePortal/>
+          }
+            
         />
         <Route
           path="/login"

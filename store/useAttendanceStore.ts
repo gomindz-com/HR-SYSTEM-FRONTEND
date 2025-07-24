@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../src/lib/axios.ts";
+import toast from "react-hot-toast";
 
 interface Attendance {
   id: string;
@@ -26,6 +27,8 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         qrPayload,
       });
       set({ attendance: response.data.data.attendance });
+      toast.success("✅ Check-in successful!")
+
     } catch (error) {
       console.log("Error in Checkin", error);
     }
@@ -36,6 +39,8 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         qrPayload,
       });
       set({ attendance: response.data.data.attendance });
+      toast.success("✅ Check-out successful!")
+
     } catch (error) {
       console.log("Error in Checkout", error);
     }
