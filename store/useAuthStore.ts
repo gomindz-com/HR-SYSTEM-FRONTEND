@@ -43,6 +43,8 @@ interface AuthStore {
   departments: Department[];
   fetchDepartments: () => Promise<void>;
   addDepartment: (name: string) => Promise<void>;
+  persistAuthToStorage: () => void;
+  restoreAuthFromStorage: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -56,6 +58,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   acceptingInvitation: false,
   authUser: null,
   departments: [],
+
+
 
   companySignUp: async (data) => {
     set({ signingUp: true });
@@ -74,7 +78,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ loggingIn: true });
     try {
       const response = await axiosInstance.post("/auth/login", data);
-      set({ authUser: response.data.data.user });
+      const user = response.data.data.user;
+      set({ authUser: user });
+      localStorage.setItem("authUser", JSON.stringify(user)); // Save locally
       return true;
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to login");
@@ -86,11 +92,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   logout: async () => {
     set({ loggingOut: true });
     try {
-      const response = await axiosInstance.post("/auth/logout");
+      await axiosInstance.post("/auth/logout");
+      localStorage.removeItem("authUser");
       set({ authUser: null });
       return true;
     } catch (error) {
-      set({ loggingOut: false });
       toast.error("Failed to logout");
       return false;
     } finally {
@@ -103,12 +109,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const response = await axiosInstance.get("/auth/check-auth");
       set({ authUser: response.data.data.user });
     } catch (error) {
-      set({ authUser: null });
+      if (!navigator.onLine) {
+        // Keep the restored authUser if offline
+        console.log("Offline - keeping existing authUser");
+      } else {
+        set({ authUser: null });
+      }
     } finally {
       set({ checkingAuth: false });
     }
   },
-  forgotPassword: async (data) => {
+    forgotPassword: async (data) => {
     set({ forgotPasswordLoading: true });
     try {
       const response = await axiosInstance.post("/auth/forgot-password", data);
@@ -223,4 +234,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ acceptingInvitation: false });
     }
   },
+
+  persistAuthToStorage: () => {
+  const { authUser } = get();
+  if (authUser) {
+    localStorage.setItem("authUser", JSON.stringify(authUser));
+  }
+},
+
+restoreAuthFromStorage: () => {
+  const savedUser = localStorage.getItem("authUser");
+  if (savedUser) {
+    set({ authUser: JSON.parse(savedUser) });
+  }
+},
 }));

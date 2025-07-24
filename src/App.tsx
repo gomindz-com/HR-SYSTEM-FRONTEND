@@ -1,14 +1,7 @@
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
@@ -34,18 +27,23 @@ import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
 import { AttendanceQrDisplayPage } from "./pages/AttendanceQRDisplayPage";
 import EmployeePortal from "./pages/EmployeePortal";
+import { useAttendanceStore } from "../store/useAttendanceStore";
 
-function ProtectedRoute({ children }) {
-  const { checkingAuth, authUser } = useAuthStore();
-  if (checkingAuth) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
-      </div>
-    );
-  }
-  return children;
-}
+export const SyncOnReconnect = () => {
+  const syncOfflineActions = useAttendanceStore((s) => s.syncOfflineActions);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("Back online, syncing...");
+      syncOfflineActions();
+    };
+
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, [syncOfflineActions]);
+
+  return null;
+};
 
 function FullScreenLayout({ children }) {
   const { checkingAuth } = useAuthStore();
@@ -59,6 +57,7 @@ function FullScreenLayout({ children }) {
   }
   return <div className="min-h-screen w-full bg-background">{children}</div>;
 }
+
 const queryClient = new QueryClient();
 
 function AppLayout({ children }) {
@@ -73,23 +72,26 @@ function AppLayout({ children }) {
   );
 }
 
-// Utility function to match path patterns (supports :param dynamic segments)
-function matchPathPattern(pattern, path) {
-  if (!pattern.includes(":")) return pattern === path;
-  // Convert pattern to regex: /reset-password/:token => ^/reset-password/[^/]+$
-  const regex = new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$");
-  return regex.test(path);
-}
-
 function App() {
-  const { checkAuth, checkingAuth, authUser } = useAuthStore();
+  const { checkAuth, checkingAuth, restoreAuthFromStorage, authUser } =
+    useAuthStore();
+
+  // Track when restoreAuthFromStorage has finished
+  const [restored, setRestored] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    restoreAuthFromStorage();
+    setRestored(true);
+  }, [restoreAuthFromStorage]);
 
-  // Show loader while checking auth
-  if (checkingAuth) {
+  useEffect(() => {
+    if (restored && navigator.onLine) {
+      checkAuth();
+    }
+  }, [checkAuth, restored]);
+
+  // Show loader while restoring auth or checking auth
+  if (!restored || checkingAuth) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader className="size-10 animate-spin" />
@@ -97,7 +99,6 @@ function App() {
     );
   }
 
-  // Only render routes after auth check is complete
   return (
     <div className="flex-1 flex flex-col">
       <Toaster
@@ -118,25 +119,20 @@ function App() {
           },
         }}
       />
+      <SyncOnReconnect />
       <Routes>
         {/* Public and Auth Routes */}
         <Route path="/" element={<HomePage />} />
         <Route
           path="/attendance-qr"
           element={
-              <FullScreenLayout>
-                <AttendanceQrDisplayPage />
-              </FullScreenLayout>
+            <FullScreenLayout>
+              <AttendanceQrDisplayPage />
+            </FullScreenLayout>
           }
         />
 
-        <Route
-          path="/my-portal"
-          element={
-            <EmployeePortal/>
-          }
-            
-        />
+        <Route path="/my-portal" element={<EmployeePortal />} />
         <Route
           path="/login"
           element={!authUser ? <LoginPage /> : <Navigate to="/dashboard" />}
@@ -163,6 +159,7 @@ function App() {
             !authUser ? <AcceptInvitationPage /> : <Navigate to="/dashboard" />
           }
         />
+
         {/* Protected Routes */}
         <Route
           path="/dashboard"
