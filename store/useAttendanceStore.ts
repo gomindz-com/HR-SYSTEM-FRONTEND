@@ -10,17 +10,43 @@ interface Attendance {
   timeIn: string;
   timeOut: string;
   status: string;
+  employee?: {
+    id: string;
+    name: string;
+    email: string;
+    profilePic?: string;
+  };
 }
 
+interface AttendancePagination {
+  attendance: Attendance[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
 interface AttendanceStore {
   checkIn: (qrPayload: string) => Promise<void>;
   checkOut: (qrPayload: string) => Promise<void>;
   generateQrToken: () => Promise<string>;
   attendance: Attendance | null;
+  fetchAttendance: (params?: {
+    page?: number;
+    pageSize?: number;
+    employeeId?: string;
+    status?: string;
+    fromDate?: string;
+    toDate?: string;
+  }) => Promise<void>;
+  attendanceList: Attendance[];
+  attendancePagination: AttendancePagination | null;
 }
 
 export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
   attendance: null,
+  attendanceList: [],
+  attendancePagination: null,
+
   checkIn: async (qrPayload: string) => {
     try {
       const response = await axiosInstance.post("/attendance/check-in", {
@@ -53,4 +79,17 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       console.log("Error in Generate Qr Token", error);
     }
   },
-}));
+fetchAttendance: async (params = {}) => {
+  try {
+    const response = await axiosInstance.get("/attendance", {
+      params,
+    });
+    const { attendance, page, pageSize, total, totalPages } = response.data.data;
+    set({
+      attendanceList: attendance,
+      attendancePagination: { attendance, page, pageSize, total, totalPages },
+    });
+  } catch (error) {
+    console.log("Error fetching attendance list", error);
+  }
+},}));

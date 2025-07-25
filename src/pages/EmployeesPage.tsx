@@ -41,6 +41,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useEmployeeStore } from "../../store/useEmployeeStore";
 import {
   Form,
   FormControl,
@@ -64,117 +65,8 @@ import {
 } from "@/components/ui/command";
 import { createPortal } from "react-dom";
 
-// Mock employee data
-const employees = [
-  {
-    id: 1,
-    name: "Ebrima Jallow",
-    email: "ebrima.jallow@gomindz.gm",
-    phone: "+220 3456789",
-    position: "Software Engineer",
-    department: "Engineering",
-    location: "Banjul, Gambia",
-    startDate: "2021-03-15",
-    status: "Active",
-    avatar: "EJ",
-  },
-  {
-    id: 2,
-    name: "Fatou Camara",
-    email: "fatou.camara@gomindz.gm",
-    phone: "+220 2345678",
-    position: "Product Manager",
-    department: "Product",
-    location: "Serrekunda, Gambia",
-    startDate: "2020-11-01",
-    status: "Active",
-    avatar: "FC",
-  },
-  {
-    id: 3,
-    name: "Lamin Sanyang",
-    email: "lamin.sanyang@gomindz.gm",
-    phone: "+220 1234567",
-    position: "UX Designer",
-    department: "Design",
-    location: "Bakau, Gambia",
-    startDate: "2022-07-10",
-    status: "Active",
-    avatar: "LS",
-  },
-  {
-    id: 4,
-    name: "Awa Ceesay",
-    email: "awa.ceesay@gomindz.gm",
-    phone: "+220 9876543",
-    position: "HR Specialist",
-    department: "Human Resources",
-    location: "Brikama, Gambia",
-    startDate: "2023-01-20",
-    status: "Active",
-    avatar: "AC",
-  },
-  {
-    id: 5,
-    name: "Modou Bah",
-    email: "modou.bah@gomindz.gm",
-    phone: "+220 8765432",
-    position: "Sales Manager",
-    department: "Sales",
-    location: "Banjul, Gambia",
-    startDate: "2019-09-05",
-    status: "On Leave",
-    avatar: "MB",
-  },
-  {
-    id: 6,
-    name: "Isatou Touray",
-    email: "isatou.touray@gomindz.gm",
-    phone: "+220 7654321",
-    position: "Marketing Coordinator",
-    department: "Marketing",
-    location: "Kanifing, Gambia",
-    startDate: "2022-12-12",
-    status: "Active",
-    avatar: "IT",
-  },
-  // New employees
-  {
-    id: 7,
-    name: "Fatoumatta Danso",
-    email: "fatoumatta.danso@gomindz.gm",
-    phone: "+220 6543210",
-    position: "AI Lead",
-    department: "Engineering",
-    location: "Bakau, Gambia",
-    startDate: "2024-02-01",
-    status: "Active",
-    avatar: "FD",
-  },
-  {
-    id: 8,
-    name: "Ndey Samba",
-    email: "ndey.samba@gomindz.gm",
-    phone: "+220 5432109",
-    position: "Business Development Lead",
-    department: "Sales",
-    location: "Serrekunda, Gambia",
-    startDate: "2023-11-15",
-    status: "Active",
-    avatar: "NS",
-  },
-];
-
-const departments = [
-  "All Departments",
-  "Engineering",
-  "Product",
-  "Design",
-  "Sales",
-  "Human Resources",
-  "Marketing",
-];
-const statuses = ["All Statuses", "Active", "On Leave", "Inactive"];
+// These are only for the invite modal, not for the employee list
+const statuses = ["All Statuses", "ACTIVE", "ON_LEAVE", "INACTIVE"];
 
 const inviteFormSchema = z.object({
   email: z.string().email(),
@@ -219,8 +111,6 @@ function CustomModal({ open, onClose, children }) {
 
 export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDepartment, setSelectedDepartment] =
-    useState("All Departments");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newDepartment, setNewDepartment] = useState("");
@@ -228,18 +118,36 @@ export default function EmployeesPage() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [departmentModalOpen, setDepartmentModalOpen] = useState(false);
 
-  // grab from your auth store
+  // Auth store for departments and invite logic
   const {
     departments: authDepartments,
     fetchDepartments,
-    addDepartment, // this creates & appends
+    addDepartment,
     sendInvitation,
     sendingInvitation,
   } = useAuthStore();
 
+  // Employee store (dynamic, from backend)
+  const {
+    employeeList,
+    employeePagination,
+    fetchEmployees,
+  } = useEmployeeStore();
+
   useEffect(() => {
     fetchDepartments();
   }, [fetchDepartments]);
+
+  // Fetch employees when filters/search change
+  useEffect(() => {
+    fetchEmployees({
+      page: 1,
+      pageSize: 30,
+      name: searchQuery || undefined,
+      status: selectedStatus !== "All Statuses" ? selectedStatus : undefined,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedStatus]);
 
   const inviteForm = useForm<z.infer<typeof inviteFormSchema>>({
     defaultValues: {
@@ -250,7 +158,7 @@ export default function EmployeesPage() {
     },
     resolver: zodResolver(inviteFormSchema),
   });
-  const [employeesList, setEmployeesList] = useState(employees);
+
   const { toast } = useToast();
 
   // Inline department add handler (no popover state)
@@ -263,29 +171,13 @@ export default function EmployeesPage() {
     setDepartmentModalOpen(false);
   }
 
-  const filteredEmployees = employeesList.filter((employee) => {
-    const matchesSearch =
-      employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.position.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesDepartment =
-      selectedDepartment === "All Departments" ||
-      employee.department === selectedDepartment;
-
-    const matchesStatus =
-      selectedStatus === "All Statuses" || employee.status === selectedStatus;
-
-    return matchesSearch && matchesDepartment && matchesStatus;
-  });
-
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Active":
+      case "ACTIVE":
         return "secondary";
-      case "On Leave":
+      case "ON_LEAVE":
         return "outline";
-      case "Inactive":
+      case "INACTIVE":
         return "destructive";
       default:
         return "secondary";
@@ -335,7 +227,13 @@ export default function EmployeesPage() {
                 <SelectContent>
                   {statuses.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {status}
+                      {status === "ACTIVE"
+                        ? "Active"
+                        : status === "ON_LEAVE"
+                        ? "On Leave"
+                        : status === "INACTIVE"
+                        ? "Inactive"
+                        : status}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -345,23 +243,17 @@ export default function EmployeesPage() {
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredEmployees.length} of {employeesList.length}{" "}
-              employees
+              Showing {employeeList.length} of{" "}
+              {employeePagination?.total ?? employeeList.length} employees
             </p>
 
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                More Filters
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Employee Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEmployees.map((employee) => (
+        {employeeList.map((employee) => (
           <Card
             key={employee.id}
             className="shadow-card hover:shadow-dropdown transition-all duration-200 bg-gradient-card"
@@ -369,10 +261,23 @@ export default function EmployeesPage() {
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">
-                      {employee.avatar}
-                    </span>
+                  <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center overflow-hidden">
+                    {employee.profilePic ? (
+                      <img
+                        src={employee.profilePic}
+                        alt={employee.name}
+                        className="w-12 h-12 object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-sm">
+                        {employee.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">
@@ -410,10 +315,16 @@ export default function EmployeesPage() {
                         | "secondary"
                     }
                   >
-                    {employee.status}
+                    {employee.status === "ACTIVE"
+                      ? "Active"
+                      : employee.status === "ON_LEAVE"
+                      ? "On Leave"
+                      : employee.status === "INACTIVE"
+                      ? "Inactive"
+                      : employee.status}
                   </Badge>
                   <span className="text-sm text-muted-foreground">
-                    {employee.department}
+                    {employee.department?.name}
                   </span>
                 </div>
 
@@ -430,13 +341,16 @@ export default function EmployeesPage() {
 
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    <span>{employee.location}</span>
+                    <span>{employee?.address}</span>
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-border">
                   <p className="text-xs text-muted-foreground">
-                    Started: {new Date(employee.startDate).toLocaleDateString()}
+                    Started:{" "}
+                    {employee.createdAt
+                      ? new Date(employee.createdAt).toLocaleDateString()
+                      : "-"}
                   </p>
                 </div>
               </div>
@@ -445,7 +359,7 @@ export default function EmployeesPage() {
         ))}
       </div>
 
-      {filteredEmployees.length === 0 && (
+      {employeeList.length === 0 && (
         <Card className="shadow-card">
           <CardContent className="p-12 text-center">
             <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
