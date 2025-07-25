@@ -15,6 +15,8 @@ import {
   User
 } from "lucide-react";
 
+
+
 import {
   Sidebar,
   SidebarContent,
@@ -27,9 +29,11 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuthStore } from "../../../store/useAuthStore";
+import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 
 const mainNavigation = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Employee Directory", url: "/employees", icon: Users },
   { title: "Attendance", url: "/attendance", icon: Clock },
   { title: "Leave Management", url: "/leave", icon: Calendar },
@@ -52,6 +56,8 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
+
+const {authUser} = useAuthStore()
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/";
@@ -153,15 +159,15 @@ export function AppSidebar() {
         <div className="mt-auto p-2 border-t border-sidebar-border">
           <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-primary-foreground" />
+              <Avatar><AvatarImage src={authUser?.profilePic || ""} /></Avatar>
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  John Doe
+                 {authUser?.name || "User Name"}
                 </p>
                 <p className="text-xs text-sidebar-foreground/70 truncate">
-                  HR Manager
+                  {authUser?.email || "User Email"}
                 </p>
               </div>
             )}

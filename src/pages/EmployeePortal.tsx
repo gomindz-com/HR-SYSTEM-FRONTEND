@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,14 +37,21 @@ import {
   AlertCircle,
   User,
   Building,
+  LogOut,
 } from "lucide-react";
 import { AttendanceQrScanner } from "@/components/QR/AttendanceQrScanner";
+import { useAuthStore } from "../../store/useAuthStore";
+import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+import { useNavigate } from "react-router-dom";
+import { useAttendanceStore } from "../../store/useAttendanceStore";
 
 const EmployeePortal = () => {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [currentTime, setCurrentTime] = useState(
     new Date().toLocaleTimeString()
   );
+
+  const { authUser } = useAuthStore();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [leaveRequestOpen, setLeaveRequestOpen] = useState(false);
@@ -73,65 +80,6 @@ const EmployeePortal = () => {
   };
 
   // Mock attendance data
-  const attendanceData = [
-    {
-      date: "2024-01-15",
-      checkIn: "09:00 AM",
-      checkOut: "05:30 PM",
-      status: "Present",
-      hours: "8.5",
-    },
-    {
-      date: "2024-01-14",
-      checkIn: "09:15 AM",
-      checkOut: "05:45 PM",
-      status: "Present",
-      hours: "8.5",
-    },
-    {
-      date: "2024-01-13",
-      checkIn: "09:05 AM",
-      checkOut: "05:35 PM",
-      status: "Present",
-      hours: "8.5",
-    },
-    {
-      date: "2024-01-12",
-      checkIn: "09:30 AM",
-      checkOut: "05:30 PM",
-      status: "Late",
-      hours: "8.0",
-    },
-    {
-      date: "2024-01-11",
-      checkIn: "-",
-      checkOut: "-",
-      status: "Absent",
-      hours: "0",
-    },
-    {
-      date: "2024-01-10",
-      checkIn: "08:45 AM",
-      checkOut: "05:15 PM",
-      status: "Present",
-      hours: "8.5",
-    },
-    {
-      date: "2024-01-09",
-      checkIn: "09:00 AM",
-      checkOut: "05:30 PM",
-      status: "Present",
-      hours: "8.5",
-    },
-    {
-      date: "2024-01-08",
-      checkIn: "09:10 AM",
-      checkOut: "05:40 PM",
-      status: "Present",
-      hours: "8.5",
-    },
-  ];
-
   // Mock leave requests data
   const leaveRequestsData = [
     {
@@ -219,21 +167,46 @@ const EmployeePortal = () => {
     }
   };
 
+  const { logout, loggingOut } = useAuthStore();
+  const navigate = useNavigate();
+  async function handleLogout() {
+    try {
+      const success = await logout();
+      if (success) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.log("Logout failed:", error);
+    }
+  }
+
+  const { fetchMyAttendance, fetchingMine, pagination, myAttendaneList } =
+    useAttendanceStore();
+
+  useEffect(() => {
+    fetchMyAttendance();
+  }, []);
+
+  const handlePageChange = (page: number, limit: number) => {
+    fetchMyAttendance({ page, limit });
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Building className="h-8 w-8 text-primary" />
-            </div>
+            <Avatar className="h-14 w-14">
+              <AvatarImage src={authUser?.profilePic} alt="Profile Picture" />
+            </Avatar>
             <div>
               <h1 className="text-3xl font-bold text-foreground">
                 Employee Portal
               </h1>
               <p className="text-muted-foreground mt-1">
-                John Doe • Software Developer • ID: EMP001
+                {authUser?.name} • {authUser?.position} • company:{" "}
+                {authUser?.company.companyName}
               </p>
             </div>
           </div>
@@ -295,16 +268,27 @@ const EmployeePortal = () => {
                 <div className="flex items-center space-x-2">
                   <div
                     className={`w-3 h-3 rounded-full ${
-                      isCheckedIn ? "bg-success" : "bg-destructive"
+                      authUser.status === "ACTIVE"
+                        ? "bg-success"
+                        : authUser.status === "ON_LEAVE"
+                        ? "bg-warning"
+                        : "bg-destructive"
                     }`}
                   ></div>
                   <span className="text-sm font-medium">
-                    Status: {isCheckedIn ? "Checked In" : "Checked Out"}
+                    Status:{" "}
+                    {authUser.status === "ACTIVE"
+                      ? "Active"
+                      : authUser.status === "ON_LEAVE"
+                      ? "On Leave"
+                      : "Inactive"}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Department: Engineering</span>
+                  <span className="text-sm">
+                    Department: {authUser.department.name}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -313,13 +297,15 @@ const EmployeePortal = () => {
                   </span>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">
-                  Working Hours Today
-                </p>
-                <p className="text-lg font-semibold text-foreground">
-                  {isCheckedIn ? "6h 30m" : "0h 0m"}
-                </p>
+              <div className="flex items-center gap-3 pl-3 border-l border-border">
+                <Button
+                  variant="ghost"
+                  className="flex items-center justify-center"
+                  onClick={handleLogout}
+                >
+                  Logout
+                  <LogOut className="w-4 h-4 font-extrabold text-primary" />
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -340,16 +326,34 @@ const EmployeePortal = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Hours</TableHead>
+
                       <TableHead>Date</TableHead>
                       <TableHead>Check In</TableHead>
                       <TableHead>Check Out</TableHead>
-                      <TableHead>Hours</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {attendanceData.map((record, index) => (
+                    {myAttendaneList.map((record, index) => (
                       <TableRow key={index} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={record.employee.profilePic} />
+                          </Avatar>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium">
+                              {record.employee.name}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {record.employee.email}
+                            </span>
+                          </div>
+                          </div>
+                        </TableCell>
+
                         <TableCell className="font-medium">
                           {new Date(record.date).toLocaleDateString("en-US", {
                             weekday: "short",
@@ -357,9 +361,8 @@ const EmployeePortal = () => {
                             day: "numeric",
                           })}
                         </TableCell>
-                        <TableCell>{record.checkIn}</TableCell>
-                        <TableCell>{record.checkOut}</TableCell>
-                        <TableCell>{record.hours}h</TableCell>
+                        <TableCell>{record.timeIn}</TableCell>
+                        <TableCell>{record.timeOut}</TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>
                       </TableRow>
                     ))}

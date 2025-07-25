@@ -2,23 +2,33 @@ export type Employee = {
   id: number;
   name: string;
   email: string;
+  company: Company;
+  status: "ACTIVE" | "INACTIVE" | "ON_LEAVE";
   phone?: string;
+  attendance: {
+    id: number;
+    checkInTime: string; 
+    checkOutTime: string; 
+    date: string; 
+  }
   profilePic?: string;
   position?: string;
   departmentId: number;
+  department: {
+    name: string;
+  }
   companyId: number;
   location?: string;
-  startDate: string; // ISO date string
-  status: "ACTIVE" | "ON_LEAVE" | "INACTIVE";
+  startDate: string; 
   avatar?: string;
   role: "EMPLOYEE" | "DIRECTOR" | "HR";
-  dateOfBirth?: string; // ISO date string
+  dateOfBirth?: string; 
   address?: string;
   emergencyContact?: string;
   employmentType: "FULL_TIME" | "PART_TIME" | "CONTRACTOR";
   salary?: number;
-  lastLogin?: string; // ISO date string
-  createdAt: string; // ISO date string
+  lastLogin?: string; 
+  createdAt: string; 
 };
 
 export type Company = {

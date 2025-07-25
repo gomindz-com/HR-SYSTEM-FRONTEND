@@ -35,28 +35,13 @@ import { Loader } from "lucide-react";
 import { AttendanceQrDisplayPage } from "./pages/AttendanceQRDisplayPage";
 import EmployeePortal from "./pages/EmployeePortal";
 
-function ProtectedRoute({ children }) {
-  const { checkingAuth, authUser } = useAuthStore();
-  if (checkingAuth) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
-      </div>
-    );
-  }
-  return children;
-}
-
 function FullScreenLayout({ children }) {
   const { checkAuth, authUser, checkingAuth } = useAuthStore();
-
-
 
   // log the authuser on a use effect
   useEffect(() => {
     console.log("Auth User:", authUser);
   }, [authUser]);
-
 
   console.log("AuthUser", authUser);
 
@@ -83,29 +68,33 @@ function AppLayout({ children }) {
   );
 }
 
-// Utility function to match path patterns (supports :param dynamic segments)
-function matchPathPattern(pattern, path) {
-  if (!pattern.includes(":")) return pattern === path;
-  // Convert pattern to regex: /reset-password/:token => ^/reset-password/[^/]+$
-  const regex = new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$");
-  return regex.test(path);
-}
+// ...existing imports...
 
 function App() {
   const { checkAuth, checkingAuth, authUser } = useAuthStore();
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    checkAuth();
+    const verifyAuth = async () => {
+      await checkAuth();
+      setAuthChecked(true);
+    };
+    verifyAuth();
   }, [checkAuth]);
 
-  // Show loader while checking auth
-  if (checkingAuth) {
+  if (!authChecked || checkingAuth) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen w-full">
         <Loader className="size-10 animate-spin" />
       </div>
     );
   }
+  // Helper to check if user is EMPLOYEE
+
+  // Show loader while checking auth
+  const isEmployee = authUser?.role === "EMPLOYEE";
+
+  console.log("authUser at route render:", authUser);
 
   // Only render routes after auth check is complete
   return (
@@ -116,13 +105,13 @@ function App() {
           style: {
             whiteSpace: "nowrap",
             width: "auto",
-            background: "#052E16",
+            background: "#8ecae6",
             color: "#46D57A",
             maxWidth: "none",
           },
           error: {
             style: {
-              background: "#7F1D1D",
+              background: "#c1121f",
               color: "#FCA5A5",
             },
           },
@@ -134,40 +123,93 @@ function App() {
         <Route
           path="/attendance-qr"
           element={
-            <FullScreenLayout>
-              <AttendanceQrDisplayPage />
-            </FullScreenLayout>
+            authUser && authUser.role === "HR" ? (
+              <FullScreenLayout>
+                <AttendanceQrDisplayPage />
+              </FullScreenLayout>
+            ) : authUser ? (
+              // If logged in but not HR, redirect to dashboard or my-portal
+              authUser.role === "EMPLOYEE" ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <Navigate to="/dashboard" />
+              )
+            ) : (
+              // If not logged in, redirect to login
+              <Navigate to="/login" />
+            )
           }
-        />
-
+        />{" "}
         <Route
           path="/my-portal"
-          element={<EmployeePortal />}
+          element={
+            authUser && isEmployee ? (
+              <EmployeePortal />
+            ) : authUser && !isEmployee ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
         <Route
           path="/login"
-          element={!authUser ? <LoginPage /> : <Navigate to="/dashboard" />}
+          element={
+            !authUser ? (
+              <LoginPage />
+            ) : isEmployee ? (
+              <Navigate to="/my-portal" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
+          }
         />
         <Route
           path="/company-signup"
-          element={!authUser ? <CompanySignup /> : <Navigate to="/dashboard" />}
+          element={
+            !authUser ? (
+              <CompanySignup />
+            ) : isEmployee ? (
+              <Navigate to="/my-portal" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
+          }
         />
         <Route
           path="/forgot-password"
           element={
-            !authUser ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />
+            !authUser ? (
+              <ForgotPasswordPage />
+            ) : isEmployee ? (
+              <Navigate to="/my-portal" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
           }
         />
         <Route
           path="/reset-password/:token"
           element={
-            !authUser ? <ResetPasswordPage /> : <Navigate to="/dashboard" />
+            !authUser ? (
+              <ResetPasswordPage />
+            ) : isEmployee ? (
+              <Navigate to="/my-portal" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
           }
         />
         <Route
           path="/accept-invitation/:token"
           element={
-            !authUser ? <AcceptInvitationPage /> : <Navigate to="/dashboard" />
+            !authUser ? (
+              <AcceptInvitationPage />
+            ) : isEmployee ? (
+              <Navigate to="/my-portal" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
           }
         />
         {/* Protected Routes */}
@@ -175,11 +217,15 @@ function App() {
           path="/dashboard"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <Index />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <Index />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -189,11 +235,15 @@ function App() {
           path="/employees"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <EmployeesPage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <EmployeesPage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -203,11 +253,15 @@ function App() {
           path="/attendance"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <AttendancePage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <AttendancePage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -217,11 +271,15 @@ function App() {
           path="/leave"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <LeavePage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <LeavePage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -231,11 +289,15 @@ function App() {
           path="/performance"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <PerformancePage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <PerformancePage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -245,11 +307,15 @@ function App() {
           path="/payroll"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <PayrollPage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <PayrollPage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -259,11 +325,15 @@ function App() {
           path="/reports"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <ReportsPage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <ReportsPage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -273,11 +343,15 @@ function App() {
           path="/analytics"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <AnalyticsPage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <AnalyticsPage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -287,11 +361,15 @@ function App() {
           path="/notifications"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <NotificationsPage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <NotificationsPage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -301,11 +379,15 @@ function App() {
           path="/settings"
           element={
             authUser ? (
-              <AppLayout>
-                <main className="flex-1 p-6 overflow-auto">
-                  <SettingsPage />
-                </main>
-              </AppLayout>
+              isEmployee ? (
+                <Navigate to="/my-portal" />
+              ) : (
+                <AppLayout>
+                  <main className="flex-1 p-6 overflow-auto">
+                    <SettingsPage />
+                  </main>
+                </AppLayout>
+              )
             ) : (
               <Navigate to="/login" />
             )
@@ -317,6 +399,7 @@ function App() {
   );
 }
 
+// ...existing RootApp export...
 export default function RootApp() {
   return (
     <QueryClientProvider client={queryClient}>

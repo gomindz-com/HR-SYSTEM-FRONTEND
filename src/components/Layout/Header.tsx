@@ -1,4 +1,12 @@
-import { Bell, Search, Settings, Moon, Sun } from "lucide-react";
+import {
+  Bell,
+  Search,
+  Settings,
+  Moon,
+  Sun,
+  FastForward,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,33 +19,39 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
+import { useAuthStore } from "../../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 export function Header() {
+  const { logout, loggingOut } = useAuthStore();
+  const navigate = useNavigate();
+  async function handleLogout() {
+    try {
+       const success = await logout();
+      if (success) {
+        navigate("/");
+      } 
+
+       
+    } catch (error) {
+      console.log("Logout failed:", error);
+    }
+  };
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 sticky top-0 z-50 shadow-sm">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="p-2 hover:bg-muted rounded-md transition-colors" />
+        <SidebarTrigger className="p-2  rounded-md transition-colors" />
 
-        <div className="relative max-w-sm">
+        <div className="relative max-w-3xl w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Search employees, departments..."
-            className="pl-10 bg-muted/50 border-0 focus:bg-card focus:ring-2 focus:ring-primary/20"
+            className="pl-10 bg-muted/50 border-0 w-[300px] focus:bg-card focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         {/* Quick Stats */}
-        <div className="hidden md:flex items-center gap-4 mr-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">142</p>
-            <p className="text-xs text-muted-foreground">Total Employees</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-success">98%</p>
-            <p className="text-xs text-muted-foreground">Attendance Rate</p>
-          </div>
-        </div>
 
         {/* Notifications */}
         <DropdownMenu>
@@ -120,13 +134,14 @@ export function Header() {
 
         {/* User Profile */}
         <div className="flex items-center gap-3 pl-3 border-l border-border">
-          <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">JD</span>
-          </div>
-          <div className="hidden sm:block text-">
-            <p className="text-sm font-medium">Victoria Mendy</p>
-            <p className="text-xs text-muted-foreground">HR Manager</p>
-          </div>
+          <Button
+            variant="ghost"
+            className="flex items-center justify-center"
+            onClick={handleLogout}
+          >
+            Logout
+            <LogOut className="w-4 h-4 font-extrabold text-primary" />
+          </Button>
         </div>
       </div>
     </header>
