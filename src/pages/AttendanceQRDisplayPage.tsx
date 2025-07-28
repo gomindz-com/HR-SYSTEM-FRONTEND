@@ -1,115 +1,157 @@
-// frontend/components/AttendanceQrDisplay.tsx
-import React, { useEffect, useState } from "react";
-import { useAttendanceStore } from "../../store/useAttendanceStore";
+// Printable QR Code Page for Attendance
+import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 
-const REFRESH_INTERVAL = 5 * 60 * 1000; // 2 minutes
+// Print-specific styles
+const printStyles = `
+  @media print {
+    @page {
+      margin: 0.5in;
+      size: A4;
+    }
+    
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .print-header {
+      display: block !important;
+    }
+    
+    .screen-only {
+      display: none !important;
+    }
+    
+    .qr-container {
+      page-break-inside: avoid;
+    }
+    
+    /* Hide browser's default header and footer */
+    @page {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+`;
 
 export const AttendanceQrDisplayPage: React.FC = () => {
-  const generateQrToken = useAttendanceStore((s) => s.generateQrToken);
-  const [qrToken, setQrToken] = useState<string | null>(null);
-  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Static QR code from environment variable
+  const qrToken = import.meta.env.VITE_UNIVERSAL_QR_CODE;
 
-  const fetchQr = async () => {
-    setIsLoading(true);
-    try {
-      const token = await generateQrToken();
-      setQrToken(token);
-      setLastRefreshed(new Date());
-    } catch (error) {
-      console.error("Failed to generate QR token", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Function to handle printing with custom title
+  const handlePrint = () => {
+    // Store original title
+    const originalTitle = document.title;
 
-  useEffect(() => {
-    fetchQr();
-    const interval = setInterval(fetchQr, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, []);
+    // Set custom title for printing
+    document.title = "Employee Attendance QR Code";
 
-  const formatTime = (date: Date | null) => {
-    if (!date) return "";
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Print
+    window.print();
+
+    // Restore original title after printing
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 100);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-500 p-6 text-white">
-          <h1 className="text-2xl font-bold text-center">Employee Attendance</h1>
-          <p className="text-center text-indigo-100 mt-1">Scan QR to check in or out</p>
+    <>
+      <style>{printStyles}</style>
+      <div className="min-h-screen bg-white p-8 print:p-4 qr-container">
+        {/* Print Header - Only visible when printing */}
+        <div className="print-header hidden print:block text-center mb-8">
+          <h1 className="text-3xl font-bold text-black mb-2">
+            Employee Attendance QR Code
+          </h1>
+          <p className="text-lg text-gray-600">Scan to check in or check out</p>
         </div>
-        
-        {/* Content */}
-        <div className="p-6">
-          
-          {/* QR Container */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 flex flex-col items-center">
-            <div className="relative">
-              {isLoading ? (
-                <div className="w-64 h-64 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+
+        {/* Main Content */}
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg print:shadow-none print:max-w-none">
+          {/* Screen Header - Hidden when printing */}
+          <div className="bg-gradient-to-r from-indigo-600 to-blue-500 p-6 text-white rounded-t-lg print:hidden">
+            <h1 className="text-2xl font-bold text-center">
+              Employee Attendance
+            </h1>
+            <p className="text-center text-indigo-100 mt-1">
+              Scan QR to check in or out
+            </p>
+          </div>
+
+          {/* QR Code Container */}
+          <div className="p-8 print:p-4 text-center">
+            {/* QR Code */}
+            <div className="inline-block p-4 bg-white border-2 border-gray-300 rounded-lg print:border-black relative">
+              <QRCodeSVG
+                value={qrToken}
+                size={300}
+                className="print:w-full print:h-auto"
+              />
+              {/* Logo overlay in the center */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-white rounded-full p-1 shadow-lg border-2 border-gray-200">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-10 w-10 text-blue-600"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
                 </div>
-              ) : (
-                <>
-                  <QRCodeSVG 
-                    value={qrToken || ""} 
-                    size={256} 
-                    className="rounded-lg shadow-md border-4 border-white transform transition duration-500 hover:scale-105"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white rounded-full p-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                </>
-              )}
+              </div>
             </div>
-            
-            <div className="mt-4 text-center">
-              {lastRefreshed && (
-                <p className="text-sm text-gray-500">
-                  QR refreshed at: {formatTime(lastRefreshed)}
+
+            {/* Instructions */}
+            <div className="mt-6 space-y-4">
+              <div className="bg-blue-50 rounded-lg p-4 print:bg-gray-100">
+                <h3 className="font-semibold text-blue-800 print:text-black mb-2">
+                  How to use:
+                </h3>
+                <ol className="text-sm text-blue-700 print:text-black list-decimal pl-5 space-y-1">
+                  <li>Open your company's attendance app</li>
+                  <li>Tap on the check-in or check-out button</li>
+                  <li>Point your camera at this QR code</li>
+                  <li>Confirm your check-in/out in the app</li>
+                </ol>
+              </div>
+
+              {/* Company Info */}
+              <div className="bg-gray-50 rounded-lg p-4 print:bg-gray-100">
+                <h3 className="font-semibold text-gray-800 print:text-black mb-2">
+                  Universal QR Code
+                </h3>
+                <p className="text-sm text-gray-600 print:text-black">
+                  This QR code will not work when you are not in the office
                 </p>
-              )}
-              <p className="text-sm text-gray-500 mt-1">
-                QR code refreshes every 5 minutes
-              </p>
+              </div>
             </div>
           </div>
-          
-          {/* Instructions */}
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-blue-800 mb-2">How to use:</h3>
-            <ol className="text-sm text-blue-700 list-decimal pl-5 space-y-1">
-              <li>Open your company's attendance app</li>
-              <li>Tap on the check-in or check-out button</li>
-              <li>Point your camera at this code</li>
-              <li>Confirm your check-in/out in the app</li>
-            </ol>
-          </div>
-          
-          {/* Status Indicator */}
-          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-700">System is operational</span>
-            </div>
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Online</span>
+
+          {/* Footer */}
+          <div className="bg-gray-50 p-4 text-center text-xs text-gray-500 rounded-b-lg print:bg-gray-100 print:text-black">
+            <p>Secure QR authentication • {new Date().getFullYear()}</p>
+            <p className="mt-1">
+              Print this page and display it in your office
+            </p>
           </div>
         </div>
-        
-        {/* Footer */}
-        <div className="bg-gray-50 p-4 text-center text-xs text-gray-500 border-t">
-          Secure QR authentication • {new Date().getFullYear()}
+
+        {/* Print Instructions - Only visible on screen */}
+        <div className="mt-8 text-center print:hidden">
+          <button
+            onClick={handlePrint}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg"
+          >
+            🖨️ Print QR Code
+          </button>
+          <p className="text-sm text-gray-600 mt-2">
+            Click to print this QR code for office display
+          </p>
         </div>
       </div>
-    </div>
+    </>
   );
 };

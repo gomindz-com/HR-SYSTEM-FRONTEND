@@ -38,16 +38,18 @@ const LoginPage = () => {
       password: data.password,
     });
     if (success) {
-      navigate("/dashboard");
+      // Let the route protection handle the redirect based on user role
+      // The App.tsx routes will automatically redirect to the correct page
+      navigate("/");
     }
   };
 
   return (
     <div className="h-screen flex items-center justify-center ">
       <div className="w-full h-full grid lg:grid-cols-[70%_30%]">
-      <div className="max-w-lg m-auto w-full flex flex-col items-start py-6">
+        <div className="max-w-lg m-auto w-full flex flex-col items-start py-6">
           <p className="mt-4 text-xl font-extrabold tracking-tight text-start mb-4 font-serif text-primary">
-           Login to your HR Management System account
+            Login to your HR Management System account
           </p>
           <Form {...form}>
             <form
@@ -103,28 +105,26 @@ const LoginPage = () => {
               </Button>
             </form>
           </Form>
-         <div className="flex flex-row justify-between w-full">
-         <p className="mt-5 text-sm text-center">
-            Don't have an account?
-            <a
-              href="/company-signup"
-              className="ml-1 underline text-muted-foreground"
-            >
-              Sign up
-            </a>
-          </p>
-          <p className="mt-5 text-sm text-center">
-            Forgot password?
-            <a
-              href="/forgot-password"
-              className="ml-1 underline text-muted-foreground"
-            >
-              Reset password
-            </a>
-          </p>
-
-
-         </div>
+          <div className="flex flex-row justify-between w-full">
+            <p className="mt-5 text-sm text-center">
+              Don't have an account?
+              <a
+                href="/company-signup"
+                className="ml-1 underline text-muted-foreground"
+              >
+                Sign up
+              </a>
+            </p>
+            <p className="mt-5 text-sm text-center">
+              Forgot password?
+              <a
+                href="/forgot-password"
+                className="ml-1 underline text-muted-foreground"
+              >
+                Reset password
+              </a>
+            </p>
+          </div>
         </div>
         <div className="bg-muted hidden lg:block">
           <img

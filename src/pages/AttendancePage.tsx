@@ -145,7 +145,7 @@ const AttendancePage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All</SelectItem>
-              <SelectItem value="PRESENT">Present</SelectItem>
+              <SelectItem value="ON_TIME">On Time</SelectItem>
               <SelectItem value="ABSENT">Absent</SelectItem>
               <SelectItem value="LATE">Late</SelectItem>
             </SelectContent>
@@ -167,6 +167,8 @@ const AttendancePage = () => {
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Date</TableHead>
+
                 <TableHead>Time In</TableHead>
                 <TableHead>Time Out</TableHead>
                 <TableHead>Status</TableHead>
@@ -196,6 +198,15 @@ const AttendancePage = () => {
                       </div>
                     </TableCell>
                     <TableCell>{record.employee?.email || "-"}</TableCell>
+                    <TableCell>
+                      {record.date
+                        ? new Date(record.date).toLocaleDateString([], {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })
+                        : "-"}
+                    </TableCell>
                     <TableCell>
                       {record.timeIn
                         ? new Date(record.timeIn).toLocaleTimeString([], {

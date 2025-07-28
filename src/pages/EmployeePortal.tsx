@@ -52,7 +52,7 @@ const EmployeePortal = () => {
     new Date().toLocaleTimeString()
   );
 
-  const { authUser } = useAuthStore();
+  const { authUser, checkingAuth } = useAuthStore();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [leaveRequestOpen, setLeaveRequestOpen] = useState(false);
@@ -196,6 +196,18 @@ const EmployeePortal = () => {
     getAttendanceStats();
   }, [fetchMyAttendance, getAttendanceStats]);
 
+  // Show loading state while auth is being checked
+  if (checkingAuth || !authUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading employee portal...</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleNextPage = () => {
     if (pagination.page < pagination.totalPages) {
       const nextPage = pagination.page + 1;
@@ -210,6 +222,17 @@ const EmployeePortal = () => {
   };
   return (
     <div className="min-h-screen bg-background p-6">
+      {/* Show loading for attendance data */}
+      {fetchingMine && (
+        <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">
+              Loading attendance data...
+            </p>
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -219,11 +242,11 @@ const EmployeePortal = () => {
             </Avatar>
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                Employee Portal
+                {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
               </h1>
               <p className="text-muted-foreground mt-1">
                 {authUser?.name} • {authUser?.position} • company:{" "}
-                {authUser?.company.companyName}
+                {authUser?.company?.companyName || "Unknown Company"}
               </p>
             </div>
           </div>
@@ -304,7 +327,8 @@ const EmployeePortal = () => {
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    Department: {authUser.department.name}
+                    Department:{" "}
+                    {authUser.department?.name || "Unknown Department"}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -315,6 +339,17 @@ const EmployeePortal = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3 pl-3 border-l border-border">
+                {/* HR Dashboard Button - Only visible to HR */}
+                {authUser?.role === "HR" && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    <Building className="w-4 h-4 mr-2" />
+                    View Dashboard
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="flex items-center justify-center"
@@ -352,40 +387,61 @@ const EmployeePortal = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {myAttendaneList.map((record, index) => (
-                      <TableRow key={index} className="hover:bg-muted/50">
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={record.employee.profilePic} />
-                            </Avatar>
-                            <div className="flex flex-col gap-1">
-                              <span className="truncate">
-                                {record.employee.name}
-                              </span>
-                              <span className="truncate text-muted-foreground">
-                                {record.employee.email}
-                              </span>
-                            </div>
+                    {fetchingMine ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2"></div>
+                            <span className="text-muted-foreground">
+                              Loading attendance data...
+                            </span>
                           </div>
                         </TableCell>
-
-                        <TableCell className="font-medium truncate">
-                          {new Date(record.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </TableCell>
-                        <TableCell className="truncate">
-                          {formatTimeOnly(record.timeIn)}
-                        </TableCell>
-                        <TableCell className="truncate">
-                          {formatTimeOnly(record.timeOut)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(record.status)}</TableCell>
                       </TableRow>
-                    ))}
+                    ) : myAttendaneList.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          <span className="text-muted-foreground">
+                            No attendance records found
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      myAttendaneList.map((record, index) => (
+                        <TableRow key={index} className="hover:bg-muted/50">
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={record.employee.profilePic} />
+                              </Avatar>
+                              <div className="flex flex-col gap-1">
+                                <span className="truncate">
+                                  {record.employee.name}
+                                </span>
+                                <span className="truncate text-muted-foreground">
+                                  {record.employee.email}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="font-medium truncate">
+                            {new Date(record.date).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </TableCell>
+                          <TableCell className="truncate">
+                            {formatTimeOnly(record.timeIn)}
+                          </TableCell>
+                          <TableCell className="truncate">
+                            {formatTimeOnly(record.timeOut)}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(record.status)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
                 <div
