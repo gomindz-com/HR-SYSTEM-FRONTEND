@@ -44,6 +44,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { useNavigate } from "react-router-dom";
 import { useAttendanceStore } from "../../store/useAttendanceStore";
+import { formatTimeOnly } from "@/lib/utils";
 
 const EmployeePortal = () => {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
@@ -131,21 +132,21 @@ const EmployeePortal = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Present":
+      case "PRESENT":
         return (
           <Badge className="bg-success text-success-foreground">
             <CheckCircle className="w-3 h-3 mr-1" />
             Present
           </Badge>
         );
-      case "Late":
+      case "LATE":
         return (
           <Badge className="bg-warning text-warning-foreground">
             <AlertCircle className="w-3 h-3 mr-1" />
             Late
           </Badge>
         );
-      case "Absent":
+      case "ABSENT":
         return (
           <Badge variant="destructive">
             <XCircle className="w-3 h-3 mr-1" />
@@ -180,12 +181,21 @@ const EmployeePortal = () => {
     }
   }
 
-  const { fetchMyAttendance, fetchingMine, pagination, myAttendaneList } =
-    useAttendanceStore();
+  const {
+    fetchMyAttendance,
+    fetchingMine,
+    pagination,
+    myAttendaneList,
+    getAttendanceStats,
+    gettingStats,
+    attendanceStats,
+  } = useAttendanceStore();
 
   useEffect(() => {
     fetchMyAttendance();
-  }, []);
+    getAttendanceStats();
+    
+  }, [fetchMyAttendance, getAttendanceStats]);
 
   const handlePageChange = (page: number, limit: number) => {
     fetchMyAttendance({ page, limit });
@@ -327,7 +337,6 @@ const EmployeePortal = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Employee</TableHead>
-                      <TableHead>Hours</TableHead>
 
                       <TableHead>Date</TableHead>
                       <TableHead>Check In</TableHead>
@@ -340,29 +349,33 @@ const EmployeePortal = () => {
                       <TableRow key={index} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={record.employee.profilePic} />
-                          </Avatar>
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium">
-                              {record.employee.name}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {record.employee.email}
-                            </span>
-                          </div>
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={record.employee.profilePic} />
+                            </Avatar>
+                            <div className="flex flex-col gap-1">
+                              <span className="truncate">
+                                {record.employee.name}
+                              </span>
+                              <span className="truncate text-muted-foreground">
+                                {record.employee.email}
+                              </span>
+                            </div>
                           </div>
                         </TableCell>
 
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium truncate">
                           {new Date(record.date).toLocaleDateString("en-US", {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
                           })}
                         </TableCell>
-                        <TableCell>{record.timeIn}</TableCell>
-                        <TableCell>{record.timeOut}</TableCell>
+                        <TableCell className="truncate">
+                          {formatTimeOnly(record.timeIn)}
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {formatTimeOnly(record.timeOut)}
+                        </TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>
                       </TableRow>
                     ))}
@@ -373,19 +386,19 @@ const EmployeePortal = () => {
               {/* Summary Stats */}
               <div className="mt-6 grid grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-success/10 rounded-lg">
-                  <p className="text-lg font-bold text-success">85%</p>
+                  <p className="text-lg font-bold text-success">{attendanceStats.attendancePercentage}%</p>
                   <p className="text-xs text-muted-foreground">
                     Attendance Rate
                   </p>
                 </div>
                 <div className="text-center p-3 bg-primary/10 rounded-lg">
-                  <p className="text-lg font-bold text-primary">7.5h</p>
+                  <p className="text-lg font-bold text-primary">{attendanceStats.daysAbsent}</p>
                   <p className="text-xs text-muted-foreground">
-                    Avg Daily Hours
+                    Days Absent
                   </p>
                 </div>
                 <div className="text-center p-3 bg-warning/10 rounded-lg">
-                  <p className="text-lg font-bold text-warning">2</p>
+                  <p className="text-lg font-bold text-warning">{attendanceStats.daysLate}</p>
                   <p className="text-xs text-muted-foreground">Late Days</p>
                 </div>
               </div>

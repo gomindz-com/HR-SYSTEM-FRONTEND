@@ -53,6 +53,14 @@ interface AttendanceStore {
     limit?: number;
   }) => Promise<void>;
   fetchingMine: boolean;
+
+  getAttendanceStats: () => Promise<void>;
+  gettingStats: boolean;
+  attendanceStats: {
+    daysLate: number;
+    daysAbsent: number;
+    attendancePercentage: number;
+  };
 }
 
 export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
@@ -66,6 +74,24 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     limit: 10,
     totalPages: 1,
     total: 0,
+  },
+  gettingStats: false,
+  attendanceStats: {
+    daysLate: 0,
+    daysAbsent: 0,
+    attendancePercentage: 0,
+  },
+
+  getAttendanceStats: async () => {
+    set({ gettingStats: true });
+    try {
+      const response = await axiosInstance.get("/attendance/stats");
+      set({ attendanceStats: response.data.data });
+    } catch (error) {
+      console.log("Error in Get Attendance Stats", error);
+    } finally {
+      set({ gettingStats: false });
+    }
   },
 
   checkIn: async (qrPayload: string) => {
@@ -120,8 +146,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       const response = await axiosInstance.get("/attendance/my-attendance", {
         params,
       });
-      const { attendance, page, limit, totalPages, total } =
-        response.data.data;
+      const { attendance, page, limit, totalPages, total } = response.data.data;
       set({
         myAttendaneList: attendance,
         pagination: { page, limit, totalPages, total },
