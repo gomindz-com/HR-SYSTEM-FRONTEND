@@ -132,11 +132,11 @@ const EmployeePortal = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "PRESENT":
+      case "ON_TIME":
         return (
           <Badge className="bg-success text-success-foreground">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Present
+            On Time
           </Badge>
         );
       case "LATE":
@@ -195,10 +195,6 @@ const EmployeePortal = () => {
     fetchMyAttendance();
     getAttendanceStats();
   }, [fetchMyAttendance, getAttendanceStats]);
-
-  const handlePageChange = (page: number, limit: number) => {
-    fetchMyAttendance({ page, limit });
-  };
 
   const handleNextPage = () => {
     if (pagination.page < pagination.totalPages) {
@@ -392,35 +388,38 @@ const EmployeePortal = () => {
                     ))}
                   </TableBody>
                 </Table>
-<div
-  className={`${
-    myAttendaneList.length < 10 ? "hidden" : ""
-  } flex items-center justify-end p-4 gap-4`}
->
-  <button
-    onClick={handlePreviousPage}
-    className={`border rounded-md p-1 cursor-pointer ${
-      pagination.page === 1 ? "bg-gray-200 text-gray-500" : "bg-white text-black"
-    }`}
-    disabled={pagination.page === 1}
-  >
-    prev
-  </button>
-  <span>
-    Page {pagination.page} of {pagination.totalPages}
-  </span>
-  <button
-    onClick={handleNextPage}
-    className={`border rounded-md p-1 cursor-pointer ${
-      pagination.page === pagination.totalPages
-        ? "bg-gray-200 text-gray-500"
-        : "bg-white text-black"
-    }`}
-    disabled={pagination.page === pagination.totalPages}
-  >
-    next
-  </button>
-</div>              </div>
+                <div
+                  className={`${
+                    myAttendaneList.length < 10 ? "hidden" : ""
+                  } flex items-center justify-end p-4 gap-4`}
+                >
+                  <button
+                    onClick={handlePreviousPage}
+                    className={`border rounded-md p-1 cursor-pointer ${
+                      pagination.page === 1
+                        ? "bg-gray-200 text-gray-500"
+                        : "bg-white text-black"
+                    }`}
+                    disabled={pagination.page === 1}
+                  >
+                    prev
+                  </button>
+                  <span>
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={handleNextPage}
+                    className={`border rounded-md p-1 cursor-pointer ${
+                      pagination.page === pagination.totalPages
+                        ? "bg-gray-200 text-gray-500"
+                        : "bg-white text-black"
+                    }`}
+                    disabled={pagination.page === pagination.totalPages}
+                  >
+                    next
+                  </button>
+                </div>{" "}
+              </div>
 
               {/* Summary Stats */}
               <div className="mt-6 grid grid-cols-3 gap-4">

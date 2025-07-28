@@ -51,7 +51,7 @@ const AttendancePage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "PRESENT":
+      case "ON_TIME":
         return "bg-success/10 text-success";
       case "ABSENT":
         return "bg-destructive/10 text-destructive";
