@@ -12,26 +12,23 @@ import {
 } from "@/components/ui/table";
 import { Clock, Search, QrCode } from "lucide-react";
 import { useAttendanceStore } from "../../store/useAttendanceStore";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AttendancePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Zustand attendance store
   const { fetchAttendance, attendanceList } = useAttendanceStore();
 
-  // Fetch attendance on mount and when filters change
   useEffect(() => {
     fetchAttendance({
       page: 1,
-      pageSize: 20,
-      fromDate: selectedDate.toISOString().slice(0, 10),
-      toDate: selectedDate.toISOString().slice(0, 10),
+      pageSize: 50,
+      status: statusFilter !== "ALL" ? statusFilter : undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [statusFilter]);
 
-  // Filter by search term (searches name and email)
   const filteredAttendance = useMemo(() => {
     if (!attendanceList) return [];
     return attendanceList.filter((record: any) => {
@@ -44,24 +41,13 @@ const AttendancePage = () => {
     });
   }, [attendanceList, searchTerm]);
 
-  // Stats
-  const today = selectedDate.toISOString().slice(0, 10);
-  const presentCount = attendanceList.filter(
-    (a: any) => a.status === "PRESENT" && a.date?.slice(0, 10) === today
-  ).length;
-  const absentCount = attendanceList.filter(
-    (a: any) => a.status === "ABSENT" && a.date?.slice(0, 10) === today
-  ).length;
-  const lateCount = attendanceList.filter(
-    (a: any) => a.status === "LATE" && a.date?.slice(0, 10) === today
-  ).length;
-  const totalCount = attendanceList.filter(
-    (a: any) => a.date?.slice(0, 10) === today
-  ).length;
+  // Stats — use filtered list if available
+  const presentCount = attendanceList.filter((a: any) => a.status === "PRESENT").length;
+  const absentCount = attendanceList.filter((a: any) => a.status === "ABSENT").length;
+  const lateCount = attendanceList.filter((a: any) => a.status === "LATE").length;
+  const totalCount = attendanceList.length;
   const attendanceRate =
-    totalCount > 0
-      ? Math.round(((presentCount + lateCount) / totalCount) * 1000) / 10
-      : 0;
+    totalCount > 0 ? Math.round(((presentCount + lateCount) / totalCount) * 1000) / 10 : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -96,30 +82,26 @@ const AttendancePage = () => {
         </a>
       </div>
 
-      {/* Quick Stats */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-card shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Present Today
+              Present
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
-              {presentCount}
-            </div>
+            <div className="text-2xl font-bold text-success">{presentCount}</div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Absent Today
+              Absent
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              {absentCount}
-            </div>
+            <div className="text-2xl font-bold text-destructive">{absentCount}</div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card shadow-card">
@@ -139,10 +121,8 @@ const AttendancePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {attendanceRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">Today</p>
+            <div className="text-2xl font-bold text-primary">{attendanceRate}%</div>
+            <p className="text-xs text-muted-foreground">All Records</p>
           </CardContent>
         </Card>
       </div>
@@ -159,13 +139,17 @@ const AttendancePage = () => {
               className="pl-10 w-64"
             />
           </div>
-          {/* Date Picker */}
-          <Input
-            type="date"
-            value={selectedDate.toISOString().slice(0, 10)}
-            onChange={(e) => setSelectedDate(new Date(e.target.value))}
-            className="w-40"
-          />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All</SelectItem>
+              <SelectItem value="PRESENT">Present</SelectItem>
+              <SelectItem value="ABSENT">Absent</SelectItem>
+              <SelectItem value="LATE">Late</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -174,7 +158,7 @@ const AttendancePage = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Daily Attendance - {selectedDate.toLocaleDateString()}
+            Attendance Records
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -203,8 +187,7 @@ const AttendancePage = () => {
                         <img
                           src={
                             record.employee?.profilePic ||
-                            "https://ui-avatars.com/api/?name=" +
-                              encodeURIComponent(record.employee?.name || "Employee")
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(record.employee?.name || "Employee")}`
                           }
                           alt={record.employee?.name || "Employee"}
                           className="w-8 h-8 rounded-full object-cover border"
@@ -212,9 +195,7 @@ const AttendancePage = () => {
                         <span>{record.employee?.name || record.employeeId}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {record.employee?.email || "-"}
-                    </TableCell>
+                    <TableCell>{record.employee?.email || "-"}</TableCell>
                     <TableCell>
                       {record.timeIn
                         ? new Date(record.timeIn).toLocaleTimeString([], {

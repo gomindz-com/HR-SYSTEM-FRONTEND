@@ -34,9 +34,7 @@ interface AttendanceStore {
     page?: number;
     pageSize?: number;
     employeeId?: string;
-    status?: string;
-    fromDate?: string;
-    toDate?: string;
+    status?: string; 
   }) => Promise<void>;
   attendanceList: Attendance[];
   attendancePagination: AttendancePagination | null;
@@ -124,21 +122,21 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       console.log("Error in Generate Qr Token", error);
     }
   },
-  fetchAttendance: async (params = {}) => {
-    try {
-      const response = await axiosInstance.get("/attendance", {
-        params,
-      });
-      const { attendance, page, pageSize, total, totalPages } =
-        response.data.data;
-      set({
-        attendanceList: attendance,
-        attendancePagination: { attendance, page, pageSize, total, totalPages },
-      });
-    } catch (error) {
-      console.log("Error fetching attendance list", error);
-    }
-  },
+fetchAttendance: async (params = {}) => {
+  try {
+    const response = await axiosInstance.get("/attendance", {
+      params, // e.g., { page: 1, pageSize: 50, status: "PRESENT" }
+    });
+    console.log("Attendance data:", response.data.data);
+    const { attendance, page, pageSize, total, totalPages } = response.data.data;
+    set({
+      attendanceList: attendance,
+      attendancePagination: { attendance, page, pageSize, total, totalPages },
+    });
+  } catch (error) {
+    console.log("Error fetching attendance list", error);
+  }
+},
 
   fetchMyAttendance: async (params = {}) => {
     set({ fetchingMine: true });

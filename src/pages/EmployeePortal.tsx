@@ -194,13 +194,24 @@ const EmployeePortal = () => {
   useEffect(() => {
     fetchMyAttendance();
     getAttendanceStats();
-    
   }, [fetchMyAttendance, getAttendanceStats]);
 
   const handlePageChange = (page: number, limit: number) => {
     fetchMyAttendance({ page, limit });
   };
 
+  const handleNextPage = () => {
+    if (pagination.page < pagination.totalPages) {
+      const nextPage = pagination.page + 1;
+      fetchMyAttendance({ page: nextPage, limit: pagination.limit });
+    }
+  };
+  const handlePreviousPage = () => {
+    if (pagination.page > 1) {
+      const previousPage = pagination.page - 1;
+      fetchMyAttendance({ page: previousPage, limit: pagination.limit });
+    }
+  };
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
@@ -381,24 +392,56 @@ const EmployeePortal = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+<div
+  className={`${
+    myAttendaneList.length < 10 ? "hidden" : ""
+  } flex items-center justify-end p-4 gap-4`}
+>
+  <button
+    onClick={handlePreviousPage}
+    className={`border rounded-md p-1 cursor-pointer ${
+      pagination.page === 1 ? "bg-gray-200 text-gray-500" : "bg-white text-black"
+    }`}
+    disabled={pagination.page === 1}
+  >
+    prev
+  </button>
+  <span>
+    Page {pagination.page} of {pagination.totalPages}
+  </span>
+  <button
+    onClick={handleNextPage}
+    className={`border rounded-md p-1 cursor-pointer ${
+      pagination.page === pagination.totalPages
+        ? "bg-gray-200 text-gray-500"
+        : "bg-white text-black"
+    }`}
+    disabled={pagination.page === pagination.totalPages}
+  >
+    next
+  </button>
+</div>              </div>
 
               {/* Summary Stats */}
               <div className="mt-6 grid grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-success/10 rounded-lg">
-                  <p className="text-lg font-bold text-success">{attendanceStats.attendancePercentage}%</p>
+                  <p className="text-lg font-bold text-success">
+                    {attendanceStats.attendancePercentage}%
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Attendance Rate
                   </p>
                 </div>
                 <div className="text-center p-3 bg-primary/10 rounded-lg">
-                  <p className="text-lg font-bold text-primary">{attendanceStats.daysAbsent}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Days Absent
+                  <p className="text-lg font-bold text-primary">
+                    {attendanceStats.daysAbsent}
                   </p>
+                  <p className="text-xs text-muted-foreground">Days Absent</p>
                 </div>
                 <div className="text-center p-3 bg-warning/10 rounded-lg">
-                  <p className="text-lg font-bold text-warning">{attendanceStats.daysLate}</p>
+                  <p className="text-lg font-bold text-warning">
+                    {attendanceStats.daysLate}
+                  </p>
                   <p className="text-xs text-muted-foreground">Late Days</p>
                 </div>
               </div>
