@@ -87,7 +87,7 @@ const AttendancePage = () => {
         <Card className="bg-gradient-card shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Present
+              On Time
             </CardTitle>
           </CardHeader>
           <CardContent>
