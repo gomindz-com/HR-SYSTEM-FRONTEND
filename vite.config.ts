@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: "0.0.0.0",  // listen on all interfaces (LAN + localhost)
+    host: "0.0.0.0", // listen on all interfaces (LAN + localhost)
     port: 8080,
     proxy: {
       // Proxy any request starting with /api to your backend
