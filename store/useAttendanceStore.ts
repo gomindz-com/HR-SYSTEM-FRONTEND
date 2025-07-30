@@ -26,16 +26,8 @@ interface AttendancePagination {
   totalPages: number;
 }
 interface AttendanceStore {
-  checkIn: (qrPayload: string) => Promise<{
-    success: boolean;
-    alreadyCheckedIn?: boolean;
-    alreadyCheckedOut?: boolean;
-  }>;
-  checkOut: (qrPayload: string) => Promise<{
-    success: boolean;
-    alreadyCheckedIn?: boolean;
-    alreadyCheckedOut?: boolean;
-  }>;
+  checkIn: (qrPayload: string) => Promise<void>;
+  checkOut: (qrPayload: string) => Promise<void>;
 
   attendance: Attendance | null;
   fetchAttendance: (params?: {
@@ -67,10 +59,6 @@ interface AttendanceStore {
     daysAbsent: number;
     attendancePercentage: number;
   };
-
-  // Loading states
-  isCheckingIn: boolean;
-  isCheckingOut: boolean;
 }
 
 export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
@@ -91,8 +79,6 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     daysAbsent: 0,
     attendancePercentage: 0,
   },
-  isCheckingIn: false,
-  isCheckingOut: false,
 
   getAttendanceStats: async () => {
     set({ gettingStats: true });
@@ -107,59 +93,27 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
   },
 
   checkIn: async (qrPayload: string) => {
-    set({ isCheckingIn: true });
     try {
       const response = await axiosInstance.post("/attendance/check-in", {
         qrPayload,
       });
       set({ attendance: response.data.data.attendance });
-      toast.success("✅ Check-in successful!");
-      return { success: true };
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "❌ Check-in failed!";
-
-      if (errorMessage.includes("already checked in")) {
-        toast.error("You have already checked in today");
-        return { success: false, alreadyCheckedIn: true };
-      } else if (error.response?.status >= 500) {
-        toast.error("❌ Check-in failed! Please try again.");
-      } else {
-        toast.error(errorMessage);
-      }
-
+      toast.error(error.response.data.message || "❌ Check-in failed!");
       console.log("Error in Checkin", error);
-      return { success: false };
-    } finally {
-      set({ isCheckingIn: false });
+      throw error; // Re-throw to let component handle it
     }
   },
   checkOut: async (qrPayload: string) => {
-    set({ isCheckingOut: true });
     try {
       const response = await axiosInstance.post("/attendance/check-out", {
         qrPayload,
       });
       set({ attendance: response.data.data.attendance });
-      toast.success("✅ Check-out successful!");
-      return { success: true };
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "❌ Check-out failed!";
-
-      if (errorMessage.includes("not checked in")) {
-        toast.error("You have not checked in today");
-        return { success: false, alreadyCheckedOut: true };
-      } else if (error.response?.status >= 500) {
-        toast.error("❌ Check-out failed! Please try again.");
-      } else {
-        toast.error(errorMessage);
-      }
-
+      toast.error(error.response.data.message || "❌ Check-out failed!");
       console.log("Error in Checkout", error);
-      return { success: false };
-    } finally {
-      set({ isCheckingOut: false });
+      throw error; // Re-throw to let component handle it
     }
   },
 
