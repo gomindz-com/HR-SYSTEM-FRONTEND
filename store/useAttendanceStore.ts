@@ -100,6 +100,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       set({ attendance: response.data.data.attendance });
       toast.success("✅ Check-in successful!");
     } catch (error) {
+      toast.error(error.response.data.message || "❌ Check-in failed!");
       console.log("Error in Checkin", error);
     }
   },
@@ -111,6 +112,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       set({ attendance: response.data.data.attendance });
       toast.success("✅ Check-out successful!");
     } catch (error) {
+      toast.error(error.response.data.message || "❌ Check-out failed!");
       console.log("Error in Checkout", error);
     }
   },
