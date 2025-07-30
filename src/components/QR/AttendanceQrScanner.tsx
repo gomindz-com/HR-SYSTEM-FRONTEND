@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAttendanceStore } from "../../../store/useAttendanceStore";
 import { QrReader } from "react-qr-reader";
 import { Result } from "@zxing/library";
+import toast from "react-hot-toast";
 
 type Mode = "check-in" | "check-out";
 
@@ -70,9 +71,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
               errorMessage.includes("already checked out")
             ) {
               // Show error as toast and close scanner
-              import("react-hot-toast").then(({ default: toast }) => {
-                toast.error(errorMessage);
-              });
+              toast.error(errorMessage);
               if (onSuccess) onSuccess(); // Close scanner
               return;
             }
