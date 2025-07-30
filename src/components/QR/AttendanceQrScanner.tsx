@@ -99,27 +99,26 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
         </p>
       ) : (
         <div className="relative w-[300px] h-[300px] rounded-2xl overflow-hidden shadow-lg border-4 border-black">
-          <QrReader
-            constraints={{ facingMode: "environment" }}
-            onResult={handleScan}
-            videoStyle={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-          {/* Optional scanning overlay */}
-          <div className="absolute inset-0 border-4 border-white/30 pointer-events-none" />
-          
-          {/* Processing overlay */}
-          {isProcessing && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div className="bg-white rounded-lg p-4 text-center">
+          {!isProcessing ? (
+            <QrReader
+              constraints={{ facingMode: "environment" }}
+              onResult={handleScan}
+              videoStyle={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+              <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-sm font-medium">Processing...</p>
+                <p className="text-sm font-medium text-gray-600">Processing...</p>
               </div>
             </div>
           )}
+          {/* Optional scanning overlay */}
+          <div className="absolute inset-0 border-4 border-white/30 pointer-events-none" />
         </div>
       )}
 
