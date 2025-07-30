@@ -71,6 +71,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
               errorMessage.includes("already checked out")
             ) {
               // Show error as toast and close scanner
+              toast.error(errorMessage);
               if (onSuccess) onSuccess(); // Close scanner
               return;
             }
