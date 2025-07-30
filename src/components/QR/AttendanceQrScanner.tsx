@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAttendanceStore } from "../../../store/useAttendanceStore";
 import { QrReader } from "react-qr-reader";
 import { Result } from "@zxing/library";
-import toast from "react-hot-toast";
 
 type Mode = "check-in" | "check-out";
 
@@ -51,8 +50,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
         setResult(null);
         setError(null);
 
-        // Small delay to prevent rapid scanning
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         try {
           if (mode === "check-in") {
@@ -61,22 +59,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
             await checkOut(text);
           }
           if (onSuccess) onSuccess();
-        } catch (err: any) {
-          // Handle business logic errors (already checked in/out)
-          if (err.response?.status === 400) {
-            const errorMessage = err.response.data.message;
-            if (
-              errorMessage.includes("already checked in") ||
-              errorMessage.includes("not checked in") ||
-              errorMessage.includes("already checked out")
-            ) {
-              // Show error as toast and close scanner
-              toast.error(errorMessage);
-              if (onSuccess) onSuccess(); // Close scanner
-              return;
-            }
-          }
-          // For other errors, show generic error
+        } catch (err) {
           setError("❌ Failed to check in/out. Please try again.");
         }
       }
