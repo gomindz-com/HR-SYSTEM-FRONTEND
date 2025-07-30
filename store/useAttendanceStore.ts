@@ -99,11 +99,8 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       });
       set({ attendance: response.data.data.attendance });
       toast.success("✅ Check-in successful!");
-    } catch (error: any) {
+    } catch (error) {
       console.log("Error in Checkin", error);
-      const errorMessage = error.response?.data?.message || error.message || "Check-in failed. Please try again.";
-      toast.error(`❌ ${errorMessage}`);
-      throw error; // Re-throw to allow UI to handle the error
     }
   },
   checkOut: async (qrPayload: string) => {
@@ -113,11 +110,8 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       });
       set({ attendance: response.data.data.attendance });
       toast.success("✅ Check-out successful!");
-    } catch (error: any) {
+    } catch (error) {
       console.log("Error in Checkout", error);
-      const errorMessage = error.response?.data?.message || error.message || "Check-out failed. Please try again.";
-      toast.error(`❌ ${errorMessage}`);
-      throw error; // Re-throw to allow UI to handle the error
     }
   },
 

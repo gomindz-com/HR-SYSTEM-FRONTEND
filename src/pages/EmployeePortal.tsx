@@ -40,7 +40,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { AttendanceQrScanner } from "@/components/QR/AttendanceQrScanner";
-import { AuthDebugger } from "@/components/AuthDebugger";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { useNavigate } from "react-router-dom";
@@ -246,7 +245,7 @@ const EmployeePortal = () => {
                 {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
               </h1>
               <p className="text-muted-foreground mt-1">
-                {authUser?.name} • {authUser?.position} •{" "}
+                {authUser?.name} • {authUser?.position} • {" "}
                 {authUser?.company?.companyName || "Unknown Company"}
               </p>
             </div>
@@ -283,7 +282,7 @@ const EmployeePortal = () => {
                 {/* Check Out Dialog */}
                 <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive">
+                    <Button  variant="destructive">
                       <Clock className="mr-2 h-4 w-4" />
                       Check Out
                     </Button>
@@ -647,9 +646,6 @@ const EmployeePortal = () => {
           </Card>
         </div>
       </div>
-
-      {/* Temporary Debug Component - Remove after fixing auth issues */}
-      <AuthDebugger />
     </div>
   );
 };
