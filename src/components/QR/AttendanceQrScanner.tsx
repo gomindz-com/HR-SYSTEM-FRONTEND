@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAttendanceStore } from "../../../store/useAttendanceStore";
 import { QrReader } from "react-qr-reader";
-import toast from "react-hot-toast";
 import { Result } from "@zxing/library";
 
 type Mode = "check-in" | "check-out";
@@ -50,13 +49,15 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
       if (text && !isProcessing) {
         setResult(null);
         setError(null);
+
+        // Add a small delay to prevent rapid multiple scans
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         try {
           if (mode === "check-in") {
             await checkIn(text);
-            toast.success("✅ Check-in successful!");
           } else {
             await checkOut(text);
-            toast.success("✅ Check-out successful!");
           }
           if (onSuccess) onSuccess();
         } catch (err) {
@@ -99,18 +100,20 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
                   </span>
                 </div>
               </div>
-              
+
               {/* Spinning border */}
               <div className="w-24 h-24 mx-auto mb-4 relative">
                 <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
                 <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
               </div>
             </div>
-            
+
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
               {mode === "check-in" ? "Checking In..." : "Checking Out..."}
             </h2>
-            <p className="text-gray-600">Please wait while we process your request</p>
+            <p className="text-gray-600">
+              Please wait while we process your request
+            </p>
           </div>
         </div>
       )}

@@ -105,8 +105,17 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         qrPayload,
       });
       set({ attendance: response.data.data.attendance });
+      toast.success("✅ Check-in successful!");
     } catch (error) {
-      toast.error(error.response.data.message || "❌ Check-in failed!");
+      // Only show error toast for actual errors, not for business logic responses
+      if (error.response?.status >= 500) {
+        toast.error("❌ Check-in failed! Please try again.");
+      } else if (error.response?.status === 400) {
+        // Don't show toast for business logic errors, let component handle them
+        console.log("Business logic error:", error.response.data.message);
+      } else {
+        toast.error("❌ Check-in failed! Please try again.");
+      }
       console.log("Error in Checkin", error);
       throw error; // Re-throw to let component handle it
     } finally {
@@ -120,8 +129,17 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         qrPayload,
       });
       set({ attendance: response.data.data.attendance });
+      toast.success("✅ Check-out successful!");
     } catch (error) {
-      toast.error(error.response.data.message || "❌ Check-out failed!");
+      // Only show error toast for actual errors, not for business logic responses
+      if (error.response?.status >= 500) {
+        toast.error("❌ Check-out failed! Please try again.");
+      } else if (error.response?.status === 400) {
+        // Don't show toast for business logic errors, let component handle them
+        console.log("Business logic error:", error.response.data.message);
+      } else {
+        toast.error("❌ Check-out failed! Please try again.");
+      }
       console.log("Error in Checkout", error);
       throw error; // Re-throw to let component handle it
     } finally {
