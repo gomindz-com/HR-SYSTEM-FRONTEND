@@ -26,8 +26,16 @@ interface AttendancePagination {
   totalPages: number;
 }
 interface AttendanceStore {
-  checkIn: (qrPayload: string) => Promise<void>;
-  checkOut: (qrPayload: string) => Promise<void>;
+  checkIn: (qrPayload: string) => Promise<{
+    success: boolean;
+    alreadyCheckedIn?: boolean;
+    alreadyCheckedOut?: boolean;
+  }>;
+  checkOut: (qrPayload: string) => Promise<{
+    success: boolean;
+    alreadyCheckedIn?: boolean;
+    alreadyCheckedOut?: boolean;
+  }>;
 
   attendance: Attendance | null;
   fetchAttendance: (params?: {
@@ -106,18 +114,22 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       });
       set({ attendance: response.data.data.attendance });
       toast.success("✅ Check-in successful!");
+      return { success: true };
     } catch (error) {
-      // Only show error toast for actual errors, not for business logic responses
-      if (error.response?.status >= 500) {
+      const errorMessage =
+        error.response?.data?.message || "❌ Check-in failed!";
+
+      if (errorMessage.includes("already checked in")) {
+        toast.error("You have already checked in today");
+        return { success: false, alreadyCheckedIn: true };
+      } else if (error.response?.status >= 500) {
         toast.error("❌ Check-in failed! Please try again.");
-      } else if (error.response?.status === 400) {
-        // Don't show toast for business logic errors, let component handle them
-        console.log("Business logic error:", error.response.data.message);
       } else {
-        toast.error("❌ Check-in failed! Please try again.");
+        toast.error(errorMessage);
       }
+
       console.log("Error in Checkin", error);
-      throw error; // Re-throw to let component handle it
+      return { success: false };
     } finally {
       set({ isCheckingIn: false });
     }
@@ -130,18 +142,22 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       });
       set({ attendance: response.data.data.attendance });
       toast.success("✅ Check-out successful!");
+      return { success: true };
     } catch (error) {
-      // Only show error toast for actual errors, not for business logic responses
-      if (error.response?.status >= 500) {
+      const errorMessage =
+        error.response?.data?.message || "❌ Check-out failed!";
+
+      if (errorMessage.includes("not checked in")) {
+        toast.error("You have not checked in today");
+        return { success: false, alreadyCheckedOut: true };
+      } else if (error.response?.status >= 500) {
         toast.error("❌ Check-out failed! Please try again.");
-      } else if (error.response?.status === 400) {
-        // Don't show toast for business logic errors, let component handle them
-        console.log("Business logic error:", error.response.data.message);
       } else {
-        toast.error("❌ Check-out failed! Please try again.");
+        toast.error(errorMessage);
       }
+
       console.log("Error in Checkout", error);
-      throw error; // Re-throw to let component handle it
+      return { success: false };
     } finally {
       set({ isCheckingOut: false });
     }

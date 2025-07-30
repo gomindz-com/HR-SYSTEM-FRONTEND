@@ -245,7 +245,7 @@ const EmployeePortal = () => {
                 {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
               </h1>
               <p className="text-muted-foreground mt-1">
-                {authUser?.name} • {authUser?.position} • {" "}
+                {authUser?.name} • {authUser?.position} •{" "}
                 {authUser?.company?.companyName || "Unknown Company"}
               </p>
             </div>
@@ -275,6 +275,7 @@ const EmployeePortal = () => {
                       key={checkInOpen ? "check-in-open" : "check-in-closed"}
                       mode="check-in"
                       onSuccess={handleCheckIn}
+                      onClose={() => setCheckInOpen(false)}
                     />
                   </DialogContent>
                 </Dialog>
@@ -282,7 +283,7 @@ const EmployeePortal = () => {
                 {/* Check Out Dialog */}
                 <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
                   <DialogTrigger asChild>
-                    <Button  variant="destructive">
+                    <Button variant="destructive">
                       <Clock className="mr-2 h-4 w-4" />
                       Check Out
                     </Button>
@@ -292,6 +293,7 @@ const EmployeePortal = () => {
                       key={checkOutOpen ? "check-out-open" : "check-out-closed"}
                       mode="check-out"
                       onSuccess={handleCheckOut}
+                      onClose={() => setCheckOutOpen(false)}
                     />
                   </DialogContent>
                 </Dialog>

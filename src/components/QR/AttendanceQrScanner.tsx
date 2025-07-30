@@ -8,11 +8,13 @@ type Mode = "check-in" | "check-out";
 type AttendanceQrScannerProps = {
   mode: Mode;
   onSuccess?: () => void;
+  onClose?: () => void;
 };
 
 export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
   mode,
   onSuccess,
+  onClose,
 }) => {
   const { checkIn, checkOut, isCheckingIn, isCheckingOut } =
     useAttendanceStore();
@@ -54,11 +56,20 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
 
         try {
           if (mode === "check-in") {
-            await checkIn(text);
+            const result = await checkIn(text);
+            if (result.success) {
+              if (onSuccess) onSuccess();
+            } else if (result.alreadyCheckedIn && onClose) {
+              onClose();
+            }
           } else {
-            await checkOut(text);
+            const result = await checkOut(text);
+            if (result.success) {
+              if (onSuccess) onSuccess();
+            } else if (result.alreadyCheckedOut && onClose) {
+              onClose();
+            }
           }
-          if (onSuccess) onSuccess();
         } catch (err) {
           setError("❌ Failed to check in/out. Please try again.");
         }
