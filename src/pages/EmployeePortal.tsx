@@ -436,7 +436,9 @@ const EmployeePortal = () => {
                             {formatTimeOnly(record.timeIn)}
                           </TableCell>
                           <TableCell className="truncate">
-                            {formatTimeOnly(record.timeOut)}
+                            {record.timeOut !== null
+                              ? formatTimeOnly(record.timeOut)
+                              : "N/A"}
                           </TableCell>
                           <TableCell>{getStatusBadge(record.status)}</TableCell>
                         </TableRow>
