@@ -50,7 +50,6 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
         setResult(null);
         setError(null);
 
-        // Add a small delay to prevent rapid multiple scans
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         try {

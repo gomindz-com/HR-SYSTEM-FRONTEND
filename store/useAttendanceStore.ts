@@ -112,7 +112,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         toast.error("❌ Check-in failed! Please try again.");
       } else if (error.response?.status === 400) {
         // Don't show toast for business logic errors, let component handle them
-        console.log("Business logic error:", error.response.data.message);
+        toast.error(`❌ ${error.response.data.message}`);
       } else {
         toast.error("❌ Check-in failed! Please try again.");
       }
