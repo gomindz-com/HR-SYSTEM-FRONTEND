@@ -37,7 +37,7 @@ const printStyles = `
 
 export const AttendanceQrDisplayPage: React.FC = () => {
   // Static QR code from environment variable
-  const qrToken = import.meta.env.VITE_UNIVERSAL_QR_CODE;
+  const qrToken = "ATTENDANCE_QR_2025";
 
   // Function to handle printing with custom title
   const handlePrint = () => {
