@@ -37,12 +37,8 @@ import EmployeePortal from "./pages/EmployeePortal";
 import HRChoicePage from "./pages/HRChoicePage";
 
 function FullScreenLayout({ children }) {
-  const { checkAuth, authUser, checkingAuth } = useAuthStore();
+  const { authUser, checkingAuth } = useAuthStore();
 
-  // log the authuser on a use effect
-  useEffect(() => {
-    console.log("Auth User:", authUser);
-  }, [authUser]);
 
   console.log("AuthUser", authUser);
 
@@ -73,29 +69,25 @@ function AppLayout({ children }) {
 
 function App() {
   const { checkAuth, checkingAuth, authUser } = useAuthStore();
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const verifyAuth = async () => {
       await checkAuth();
-      setAuthChecked(true);
     };
     verifyAuth();
-  }, [checkAuth]);
+  }, []);
 
-  if (!authChecked || checkingAuth) {
+  if (checkingAuth) {
     return (
       <div className="flex items-center justify-center h-screen w-full">
         <Loader className="size-10 animate-spin" />
       </div>
     );
-  }
-  // Helper to check if user is EMPLOYEE
+  }  // Helper to check if user is EMPLOYEE
 
   // Show loader while checking auth
   const isEmployee = authUser?.role === "EMPLOYEE";
 
-  console.log("authUser at route render:", authUser);
 
   // Only render routes after auth check is complete
   return (
