@@ -15,12 +15,13 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
   mode,
   onSuccess,
 }) => {
-  const { checkIn, checkOut } = useAttendanceStore();
+  const { checkIn, checkOut, isCheckingIn, isCheckingOut } =
+    useAttendanceStore();
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraChecked, setCameraChecked] = useState(false);
   const [hasCameraSupport, setHasCameraSupport] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessing = mode === "check-in" ? isCheckingIn : isCheckingOut;
 
   useEffect(() => {
     async function checkCamera() {
@@ -47,7 +48,6 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
     if (result) {
       const text = result.getText?.();
       if (text && !isProcessing) {
-        setIsProcessing(true);
         setResult(null);
         setError(null);
         try {
@@ -61,8 +61,6 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
           if (onSuccess) onSuccess();
         } catch (err) {
           setError("❌ Failed to check in/out. Please try again.");
-        } finally {
-          setIsProcessing(false);
         }
       }
     } else if (error) {
@@ -86,20 +84,51 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center text-center space-y-4">
-      <h2 className="text-lg font-bold">
-        {mode === "check-in" ? "Scan to Check In" : "Scan to Check Out"}
-      </h2>
+    <>
+      {/* Full-screen loader */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="relative">
+              {/* Animated check-in/out icon */}
+              <div className="w-20 h-20 mx-auto mb-6 relative">
+                <div className="absolute inset-0 bg-blue-100 rounded-full animate-pulse"></div>
+                <div className="absolute inset-2 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-2xl font-bold">
+                    {mode === "check-in" ? "📥" : "📤"}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Spinning border */}
+              <div className="w-24 h-24 mx-auto mb-4 relative">
+                <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              {mode === "check-in" ? "Checking In..." : "Checking Out..."}
+            </h2>
+            <p className="text-gray-600">Please wait while we process your request</p>
+          </div>
+        </div>
+      )}
 
-      {!cameraChecked ? (
-        <p className="text-gray-500">📷 Initializing camera...</p>
-      ) : !hasCameraSupport ? (
-        <p className="text-red-600">
-          ❌ Camera not supported. Use a modern browser and allow access.
-        </p>
-      ) : (
-        <div className="relative w-[300px] h-[300px] rounded-2xl overflow-hidden shadow-lg border-4 border-black">
-          {!isProcessing ? (
+      {/* Main scanner component */}
+      <div className="flex flex-col items-center text-center space-y-4">
+        <h2 className="text-lg font-bold">
+          {mode === "check-in" ? "Scan to Check In" : "Scan to Check Out"}
+        </h2>
+
+        {!cameraChecked ? (
+          <p className="text-gray-500">📷 Initializing camera...</p>
+        ) : !hasCameraSupport ? (
+          <p className="text-red-600">
+            ❌ Camera not supported. Use a modern browser and allow access.
+          </p>
+        ) : (
+          <div className="relative w-[300px] h-[300px] rounded-2xl overflow-hidden shadow-lg border-4 border-black">
             <QrReader
               constraints={{ facingMode: "environment" }}
               onResult={handleScan}
@@ -109,20 +138,13 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
                 objectFit: "cover",
               }}
             />
-          ) : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-sm font-medium text-gray-600">Processing...</p>
-              </div>
-            </div>
-          )}
-          {/* Optional scanning overlay */}
-          <div className="absolute inset-0 border-4 border-white/30 pointer-events-none" />
-        </div>
-      )}
+            {/* Optional scanning overlay */}
+            <div className="absolute inset-0 border-4 border-white/30 pointer-events-none" />
+          </div>
+        )}
 
-      {result && <p className="text-green-600">{result}</p>}
-    </div>
+        {result && <p className="text-green-600">{result}</p>}
+      </div>
+    </>
   );
 };

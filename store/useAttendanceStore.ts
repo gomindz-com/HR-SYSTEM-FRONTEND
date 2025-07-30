@@ -59,6 +59,10 @@ interface AttendanceStore {
     daysAbsent: number;
     attendancePercentage: number;
   };
+
+  // Loading states
+  isCheckingIn: boolean;
+  isCheckingOut: boolean;
 }
 
 export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
@@ -79,6 +83,8 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     daysAbsent: 0,
     attendancePercentage: 0,
   },
+  isCheckingIn: false,
+  isCheckingOut: false,
 
   getAttendanceStats: async () => {
     set({ gettingStats: true });
@@ -93,6 +99,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
   },
 
   checkIn: async (qrPayload: string) => {
+    set({ isCheckingIn: true });
     try {
       const response = await axiosInstance.post("/attendance/check-in", {
         qrPayload,
@@ -102,9 +109,12 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       toast.error(error.response.data.message || "❌ Check-in failed!");
       console.log("Error in Checkin", error);
       throw error; // Re-throw to let component handle it
+    } finally {
+      set({ isCheckingIn: false });
     }
   },
   checkOut: async (qrPayload: string) => {
+    set({ isCheckingOut: true });
     try {
       const response = await axiosInstance.post("/attendance/check-out", {
         qrPayload,
@@ -114,6 +124,8 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       toast.error(error.response.data.message || "❌ Check-out failed!");
       console.log("Error in Checkout", error);
       throw error; // Re-throw to let component handle it
+    } finally {
+      set({ isCheckingOut: false });
     }
   },
 
