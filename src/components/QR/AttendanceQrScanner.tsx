@@ -57,8 +57,11 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
             setResult("✅ Check-out successful!");
           }
           if (onSuccess) onSuccess();
-        } catch (err) {
-          setError("❌ Failed to check in/out. Please try again.");
+        } catch (err: any) {
+          console.error("QR scan error:", err);
+          const errorMessage = err.response?.data?.message || err.message || "Failed to check in/out. Please try again.";
+          setError(`❌ ${errorMessage}`);
+          toast.error(`❌ ${errorMessage}`);
         }
       }
     } else if (error) {
