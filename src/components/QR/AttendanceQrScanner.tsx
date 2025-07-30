@@ -20,6 +20,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [cameraChecked, setCameraChecked] = useState(false);
   const [hasCameraSupport, setHasCameraSupport] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     async function checkCamera() {
@@ -45,20 +46,23 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
   const handleScan = async (result: Result | null, error: Error | null) => {
     if (result) {
       const text = result.getText?.();
-      if (text) {
+      if (text && !isProcessing) {
+        setIsProcessing(true);
         setResult(null);
         setError(null);
         try {
           if (mode === "check-in") {
             await checkIn(text);
-            setResult("✅ Check-in successful!");
+            toast.success("✅ Check-in successful!");
           } else {
             await checkOut(text);
-            setResult("✅ Check-out successful!");
+            toast.success("✅ Check-out successful!");
           }
           if (onSuccess) onSuccess();
         } catch (err) {
           setError("❌ Failed to check in/out. Please try again.");
+        } finally {
+          setIsProcessing(false);
         }
       }
     } else if (error) {
@@ -106,6 +110,16 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
           />
           {/* Optional scanning overlay */}
           <div className="absolute inset-0 border-4 border-white/30 pointer-events-none" />
+          
+          {/* Processing overlay */}
+          {isProcessing && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div className="bg-white rounded-lg p-4 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-sm font-medium">Processing...</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
