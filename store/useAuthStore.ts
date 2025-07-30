@@ -102,15 +102,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   checkAuth: async () => {
     set({ checkingAuth: true });
     try {
+      console.log("Making checkAuth request...");
       const response = await axiosInstance.get("/auth/check-auth");
+      console.log("checkAuth success:", response.data);
       set({ authUser: response.data.data.user });
     } catch (error) {
+      console.log("checkAuth error:", error.response?.data || error.message);
       set({ authUser: null });
     } finally {
       set({ checkingAuth: false });
     }
-  },
-  forgotPassword: async (data) => {
+  },  forgotPassword: async (data) => {
     set({ forgotPasswordLoading: true });
     try {
       const response = await axiosInstance.post("/auth/forgot-password", data);
