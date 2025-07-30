@@ -114,11 +114,19 @@ export const useAuthStore = create<AuthStore>()(
           console.log("checkAuth success:", response.data);
           set({ authUser: response.data.data.user });
         } catch (error) {
-          console.log("checkAuth error:", error.response?.data || error.message);
+          console.log(
+            "checkAuth error:",
+            error.response?.data || error.message
+          );
+          // Clear user state if authentication fails
+          set({ authUser: null });
+          // Clear any stored auth data
+          localStorage.removeItem("auth-storage");
         } finally {
           set({ checkingAuth: false });
         }
-      },      forgotPassword: async (data) => {
+      },
+      forgotPassword: async (data) => {
         set({ forgotPasswordLoading: true });
         try {
           const response = await axiosInstance.post(
