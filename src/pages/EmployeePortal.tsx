@@ -518,7 +518,7 @@ const EmployeePortal = () => {
                   onOpenChange={setLeaveRequestOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button size="sm">
+                    <Button disabled={true} size="sm">
                       <Plus className="mr-2 h-4 w-4" />
                       Request Leave
                     </Button>
