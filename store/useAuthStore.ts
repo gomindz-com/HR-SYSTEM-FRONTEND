@@ -102,10 +102,10 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await axiosInstance.post("/auth/logout");
           set({ authUser: null });
-          
+
           // Clear JWT token from localStorage
           localStorage.removeItem("jwt_token");
-          
+
           toast.success("Logged out successfully");
           return true;
         } catch (error) {
@@ -145,11 +145,12 @@ export const useAuthStore = create<AuthStore>()(
           toast.success("Password reset email sent");
           return true;
         } catch (error) {
-          return false;
           set({ forgotPasswordLoading: false });
           toast.error(
-            error.response.data.message || "Failed to send password reset email"
+            error.response?.data?.message ||
+              "Failed to send password reset email"
           );
+          return false;
         }
       },
       resetPassword: async (data) => {
@@ -166,7 +167,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           set({ resetPasswordLoading: false });
           toast.error(
-            error.response.data.message || "Failed to reset password"
+            error.response?.data?.message || "Failed to reset password"
           );
           return false;
         } finally {

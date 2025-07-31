@@ -123,6 +123,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
       )}
 
       {result && <p className="text-green-600">{result}</p>}
+      {error && <p className="text-red-600">{error}</p>}
     </div>
   );
 };
