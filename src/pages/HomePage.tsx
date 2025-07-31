@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Users, Clock, Calendar, CheckCircle, Star, Zap, Shield } from "lucide-react"
 
-export default function HomePage() => {
+export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
