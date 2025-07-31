@@ -53,10 +53,8 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
         try {
           if (mode === "check-in") {
             await checkIn(text);
-            toast.success("✅ Check-in successful!");
           } else {
             await checkOut(text);
-            toast.success("✅ Check-out successful!");
           }
           if (onSuccess) onSuccess();
         } catch (err) {
