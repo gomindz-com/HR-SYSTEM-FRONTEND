@@ -106,6 +106,9 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
                 height: "100%",
                 objectFit: "cover",
               }}
+              videoId="qr-video"
+              className="qr-reader"
+              ViewFinder={null}
             />
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center">

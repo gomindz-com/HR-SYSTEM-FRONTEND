@@ -149,4 +149,49 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* QR Scanner - Hide video controls */
+  .qr-reader video {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+  }
+  
+  .qr-reader video::-webkit-media-controls {
+    display: none !important;
+  }
+  
+  .qr-reader video::-webkit-media-controls-panel {
+    display: none !important;
+  }
+  
+  .qr-reader video::-webkit-media-controls-play-button {
+    display: none !important;
+  }
+  
+  .qr-reader video::-webkit-media-controls-start-playback-button {
+    display: none !important;
+  }
+  
+  #qr-video {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+  }
+  
+  #qr-video::-webkit-media-controls {
+    display: none !important;
+  }
+  
+  #qr-video::-webkit-media-controls-panel {
+    display: none !important;
+  }
+  
+  #qr-video::-webkit-media-controls-play-button {
+    display: none !important;
+  }
+  
+  #qr-video::-webkit-media-controls-start-playback-button {
+    display: none !important;
+  }
 }
