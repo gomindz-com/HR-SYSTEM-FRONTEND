@@ -1,0 +1,21 @@
+{
+    "name": "HR Management Dashboard",
+    "short_name": "HR Dashboard",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "icons": [
+      {
+        "src": "/gomind.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/gomind.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  
