@@ -180,7 +180,6 @@ function App() {
             )
           }
         />
-
         <Route
           path="/login"
           element={
@@ -190,14 +189,11 @@ function App() {
               <Navigate to="/my-portal" />
             ) : authUser.role === "HR" ? (
               <Navigate to="/hr-choice" />
-            ) : authUser.role === "DIRECTOR" ? (
-              <Navigate to="/hr-choice" />
             ) : (
               <Navigate to="/dashboard" />
             )
           }
         />
-        
         <Route
           path="/company-signup"
           element={
