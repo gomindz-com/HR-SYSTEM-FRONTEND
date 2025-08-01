@@ -10,7 +10,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import Index from "./pages/Index";
-// import EmployeesPage from "./pages/EmployeesPage";
+import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
 import LeavePage from "./pages/LeavePage";
 import PerformancePage from "./pages/PerformancePage";
@@ -276,7 +276,7 @@ function App() {
             )
           }
         />
-        {/* <Route
+        <Route
           path="/employees"
           element={
             authUser ? (
@@ -293,7 +293,7 @@ function App() {
               <Navigate to="/login" />
             )
           }
-        /> */}
+        />
         <Route
           path="/attendance"
           element={
