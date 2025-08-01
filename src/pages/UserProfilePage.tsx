@@ -35,6 +35,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useUserStore } from "../../store/useUserStore";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 // Zod schema for form validation
 const profileSchema = z.object({
@@ -58,6 +60,7 @@ const UserProfilePage = () => {
   const { isUpdating, updateUserProfile } = useUserStore();
 
   const { authUser, checkAuth } = useAuthStore();
+  const navigate = useNavigate();
 
   // Load user data when component mounts
   useEffect(() => {
@@ -142,6 +145,9 @@ const UserProfilePage = () => {
       }
 
       await checkAuth();
+
+      // Redirect back to portal after successful update
+      navigate("/my-portal");
     } catch (error) {
       console.error("Profile update failed:", error);
     }
@@ -150,12 +156,25 @@ const UserProfilePage = () => {
     <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Settings
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-2">
-          Manage your account settings and preferences
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Settings
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-2">
+              Manage your account settings and preferences
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+            onClick={() => navigate("/my-portal")}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Portal</span>
+          </Button>
+        </div>
       </div>
 
       {/* Profile Section */}

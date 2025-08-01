@@ -183,6 +183,10 @@ const EmployeePortal = () => {
 
   const { logout, loggingOut } = useAuthStore();
   const navigate = useNavigate();
+
+  const handleUpdateProfile = () => {
+    navigate("/user-profile");
+  };
   async function handleLogout() {
     try {
       const success = await logout();
@@ -268,6 +272,18 @@ const EmployeePortal = () => {
                 {authUser?.name} • {authUser?.position} •{" "}
                 {authUser?.company?.companyName || "Unknown Company"}
               </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2 text-xs sm:text-sm"
+                onClick={handleUpdateProfile}
+              >
+                <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden max-md:inline">Update</span>
+                <span className="max-md:hidden">Update Profile</span>
+              </Button>
             </div>
           </div>
 
