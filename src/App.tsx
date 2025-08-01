@@ -78,45 +78,19 @@ function App() {
 
   useEffect(() => {
     const verifyAuth = async () => {
-      try {
-        await checkAuth();
-      } catch (error) {
-        console.log("Auth check failed:", error);
-      } finally {
-        setAuthChecked(true);
-      }
-    };
-
-    // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
+      await checkAuth();
       setAuthChecked(true);
-    }, 3000);
-
+    };
     verifyAuth();
-
-    return () => clearTimeout(timeoutId);
   }, [checkAuth]);
 
   if (!authChecked || checkingAuth) {
-    console.log(
-      "Showing loader - authChecked:",
-      authChecked,
-      "checkingAuth:",
-      checkingAuth
-    );
     return (
       <div className="flex items-center justify-center h-screen w-full">
         <Loader className="size-10 animate-spin" />
       </div>
     );
   }
-
-  console.log(
-    "Auth check complete. authUser:",
-    authUser,
-    "authChecked:",
-    authChecked
-  );
   // Helper to check if user is EMPLOYEE
 
   // Show loader while checking auth
