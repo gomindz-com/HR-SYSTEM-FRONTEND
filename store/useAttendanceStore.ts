@@ -58,6 +58,7 @@ interface AttendanceStore {
     daysLate: number;
     daysAbsent: number;
     attendancePercentage: number;
+    daysOnTime: number;
   };
 }
 
@@ -78,6 +79,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     daysLate: 0,
     daysAbsent: 0,
     attendancePercentage: 0,
+    daysOnTime: 0,
   },
 
   getAttendanceStats: async () => {

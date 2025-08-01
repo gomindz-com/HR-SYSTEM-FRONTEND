@@ -518,7 +518,7 @@ const EmployeePortal = () => {
               </div>
 
               {/* Summary Stats - Mobile Responsive */}
-              <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="mt-4 sm:mt-6 grid grid-cols-4 gap-2 sm:gap-4">
                 <div className="text-center p-2 sm:p-3 bg-success/10 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-success">
                     {attendanceStats.attendancePercentage}%
@@ -526,6 +526,12 @@ const EmployeePortal = () => {
                   <p className="text-xs text-muted-foreground">
                     Attendance Rate
                   </p>
+                </div>
+                <div className="text-center p-2 sm:p-3 bg-green-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-green-600">
+                    {attendanceStats.daysOnTime}
+                  </p>
+                  <p className="text-xs text-muted-foreground">On Time</p>
                 </div>
                 <div className="text-center p-2 sm:p-3 bg-primary/10 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-primary">

@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/table";
 import { Clock, Search, QrCode } from "lucide-react";
 import { useAttendanceStore } from "../../store/useAttendanceStore";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AttendancePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,12 +48,20 @@ const AttendancePage = () => {
   }, [attendanceList, searchTerm]);
 
   // Stats — use filtered list if available
-  const presentCount = attendanceList.filter((a: any) => a.status === "PRESENT").length;
-  const absentCount = attendanceList.filter((a: any) => a.status === "ABSENT").length;
-  const lateCount = attendanceList.filter((a: any) => a.status === "LATE").length;
+  const onTimeCount = attendanceList.filter(
+    (a: any) => a.status === "ON_TIME"
+  ).length;
+  const absentCount = attendanceList.filter(
+    (a: any) => a.status === "ABSENT"
+  ).length;
+  const lateCount = attendanceList.filter(
+    (a: any) => a.status === "LATE"
+  ).length;
   const totalCount = attendanceList.length;
   const attendanceRate =
-    totalCount > 0 ? Math.round(((presentCount + lateCount) / totalCount) * 1000) / 10 : 0;
+    totalCount > 0
+      ? Math.round(((onTimeCount + lateCount) / totalCount) * 1000) / 10
+      : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,7 +105,7 @@ const AttendancePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{presentCount}</div>
+            <div className="text-2xl font-bold text-success">{onTimeCount}</div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card shadow-card">
@@ -101,7 +115,9 @@ const AttendancePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{absentCount}</div>
+            <div className="text-2xl font-bold text-destructive">
+              {absentCount}
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card shadow-card">
@@ -121,7 +137,9 @@ const AttendancePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{attendanceRate}%</div>
+            <div className="text-2xl font-bold text-primary">
+              {attendanceRate}%
+            </div>
             <p className="text-xs text-muted-foreground">All Records</p>
           </CardContent>
         </Card>
@@ -189,12 +207,16 @@ const AttendancePage = () => {
                         <img
                           src={
                             record.employee?.profilePic ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(record.employee?.name || "Employee")}`
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              record.employee?.name || "Employee"
+                            )}`
                           }
                           alt={record.employee?.name || "Employee"}
                           className="w-8 h-8 rounded-full object-cover border"
                         />
-                        <span>{record.employee?.name || record.employeeId}</span>
+                        <span>
+                          {record.employee?.name || record.employeeId}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>{record.employee?.email || "-"}</TableCell>
