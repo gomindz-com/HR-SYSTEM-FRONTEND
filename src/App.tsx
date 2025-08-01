@@ -97,6 +97,8 @@ function App() {
   const isEmployee = authUser?.role === "EMPLOYEE";
 
   console.log("authUser at route render:", authUser);
+  console.log("authChecked:", authChecked);
+  console.log("checkingAuth:", checkingAuth);
 
   // Only render routes after auth check is complete
   return (
@@ -127,11 +129,11 @@ function App() {
             !authUser ? (
               <HomePage />
             ) : isEmployee ? (
-              <Navigate to="/my-portal" />
+              <Navigate to="/my-portal" replace />
             ) : authUser.role === "HR" ? (
-              <Navigate to="/hr-choice" />
+              <Navigate to="/hr-choice" replace />
             ) : (
-              <Navigate to="/dashboard" />
+              <Navigate to="/dashboard" replace />
             )
           }
         />
