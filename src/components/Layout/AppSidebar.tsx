@@ -28,7 +28,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "../../../store/useAuthStore";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const mainNavigation = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -173,9 +173,14 @@ export function AppSidebar() {
                 {hrNavigation.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavClasses(item.url)}>
+                      <NavLink
+                        to={item.url}
+                        className={getNavClasses(item.url)}
+                      >
                         <item.icon className="w-5 h-5 shrink-0" />
-                        {!collapsed && <span className="ml-3">{item.title}</span>}
+                        {!collapsed && (
+                          <span className="ml-3">{item.title}</span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -188,11 +193,16 @@ export function AppSidebar() {
         {/* User Profile Section */}
         <div className="mt-auto p-2 border-t border-sidebar-border">
           <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <Avatar>
-                <AvatarImage src={authUser?.profilePic || ""} />
-              </Avatar>
-            </div>
+            <Avatar className="rounded-full w-8 h-8 overflow-hidden">
+              <AvatarImage
+                src={authUser?.profilePic || ""}
+                className="rounded-full object-cover"
+                alt={authUser?.name || "User"}
+              />
+              <AvatarFallback className="rounded-full bg-purple-100 text-purple-600 text-xs font-semibold">
+                {authUser?.name?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">

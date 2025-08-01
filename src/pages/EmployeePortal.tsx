@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import { AttendanceQrScanner } from "@/components/QR/AttendanceQrScanner";
 import { useAuthStore } from "../../store/useAuthStore";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useAttendanceStore } from "../../store/useAttendanceStore";
 import { formatTimeOnly } from "@/lib/utils";
@@ -156,16 +156,28 @@ const EmployeePortal = () => {
         );
       case "Approved":
         return (
-          <Badge className="bg-success text-success-foreground text-xs">Approved</Badge>
+          <Badge className="bg-success text-success-foreground text-xs">
+            Approved
+          </Badge>
         );
       case "Pending":
         return (
-          <Badge className="bg-warning text-warning-foreground text-xs">Pending</Badge>
+          <Badge className="bg-warning text-warning-foreground text-xs">
+            Pending
+          </Badge>
         );
       case "Rejected":
-        return <Badge variant="destructive" className="text-xs">Rejected</Badge>;
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Rejected
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary" className="text-xs">{status}</Badge>;
+        return (
+          <Badge variant="secondary" className="text-xs">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -238,24 +250,33 @@ const EmployeePortal = () => {
         {/* Header - Mobile Responsive */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3 sm:space-x-4">
-            <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
-              <AvatarImage src={authUser?.profilePic} alt="Profile Picture" />
+            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 rounded-full overflow-hidden">
+              <AvatarImage
+                src={authUser?.profilePic}
+                alt="Profile Picture"
+                className="rounded-full object-cover"
+              />
+              <AvatarFallback className="rounded-full bg-purple-100 text-purple-600 text-lg font-semibold">
+                {authUser?.name?.charAt(0) || "U"}
+              </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground truncate">
                 {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
-                {authUser?.name} • {authUser?.position} • {" "}
+                {authUser?.name} • {authUser?.position} •{" "}
                 {authUser?.company?.companyName || "Unknown Company"}
               </p>
             </div>
           </div>
-          
+
           {/* Time and Action Buttons */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <div className="text-center sm:text-right">
-              <p className="text-xs sm:text-sm text-muted-foreground">Current Time</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Current Time
+              </p>
               <p className="text-lg sm:text-xl font-semibold text-foreground">
                 {currentTime}
               </p>
@@ -285,7 +306,11 @@ const EmployeePortal = () => {
               {/* Check Out Dialog */}
               <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="destructive" className="w-full sm:w-auto" size="sm">
+                  <Button
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                    size="sm"
+                  >
                     <Clock className="mr-2 h-4 w-4" />
                     Check Out
                   </Button>
@@ -383,11 +408,19 @@ const EmployeePortal = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm">Employee</TableHead>
+                      <TableHead className="text-xs sm:text-sm">
+                        Employee
+                      </TableHead>
                       <TableHead className="text-xs sm:text-sm">Date</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Check In</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Check Out</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-xs sm:text-sm">
+                        Check In
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm">
+                        Check Out
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm">
+                        Status
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -443,7 +476,9 @@ const EmployeePortal = () => {
                               ? formatTimeOnly(record.timeOut)
                               : "-"}
                           </TableCell>
-                          <TableCell className="py-2 sm:py-4">{getStatusBadge(record.status)}</TableCell>
+                          <TableCell className="py-2 sm:py-4">
+                            {getStatusBadge(record.status)}
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -523,7 +558,11 @@ const EmployeePortal = () => {
                   onOpenChange={setLeaveRequestOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button disabled={true} size="sm" className="w-full sm:w-auto">
+                    <Button
+                      disabled={true}
+                      size="sm"
+                      className="w-full sm:w-auto"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Request Leave
                     </Button>
@@ -598,9 +637,13 @@ const EmployeePortal = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-xs sm:text-sm">Type</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Dates</TableHead>
+                      <TableHead className="text-xs sm:text-sm">
+                        Dates
+                      </TableHead>
                       <TableHead className="text-xs sm:text-sm">Days</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-xs sm:text-sm">
+                        Status
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -622,8 +665,12 @@ const EmployeePortal = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm py-2 sm:py-4">{request.days}</TableCell>
-                        <TableCell className="py-2 sm:py-4">{getStatusBadge(request.status)}</TableCell>
+                        <TableCell className="text-xs sm:text-sm py-2 sm:py-4">
+                          {request.days}
+                        </TableCell>
+                        <TableCell className="py-2 sm:py-4">
+                          {getStatusBadge(request.status)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -633,7 +680,9 @@ const EmployeePortal = () => {
               {/* Leave Balance - Mobile Responsive */}
               <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
                 <div className="text-center p-2 sm:p-3 bg-primary/10 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-primary">18</p>
+                  <p className="text-sm sm:text-lg font-bold text-primary">
+                    18
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Days Available
                   </p>
@@ -643,7 +692,9 @@ const EmployeePortal = () => {
                   <p className="text-xs text-muted-foreground">Days Used</p>
                 </div>
                 <div className="text-center p-2 sm:p-3 bg-muted rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-muted-foreground">2</p>
+                  <p className="text-sm sm:text-lg font-bold text-muted-foreground">
+                    2
+                  </p>
                   <p className="text-xs text-muted-foreground">Pending</p>
                 </div>
               </div>
