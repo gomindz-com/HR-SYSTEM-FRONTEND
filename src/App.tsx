@@ -35,6 +35,7 @@ import { Loader } from "lucide-react";
 import { AttendanceQrDisplayPage } from "./pages/AttendanceQRDisplayPage";
 import EmployeePortal from "./pages/EmployeePortal";
 import HRChoicePage from "./pages/HRChoicePage";
+import UserProfilePage from "./pages/UserProfilePage";
 
 function FullScreenLayout({ children }) {
   const { checkAuth, authUser, checkingAuth } = useAuthStore();
@@ -251,6 +252,10 @@ function App() {
           }
         />
         {/* Protected Routes */}
+        <Route
+          path="/user-profile"
+          element={authUser ? <UserProfilePage /> : <Navigate to="/login" />}
+        />
         <Route
           path="/dashboard"
           element={
