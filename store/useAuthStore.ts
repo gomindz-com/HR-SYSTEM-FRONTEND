@@ -128,8 +128,9 @@ export const useAuthStore = create<AuthStore>()(
             "checkAuth error:",
             error.response?.data || error.message
           );
-          // If checkAuth fails, clear the token
+          // If checkAuth fails, clear the token and user
           localStorage.removeItem("jwt_token");
+          set({ authUser: null });
         } finally {
           set({ checkingAuth: false });
         }
