@@ -48,86 +48,113 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center ">
-      <div className="w-full h-full grid lg:grid-cols-[70%_30%]">
-        <div className="max-w-lg m-auto w-full flex flex-col items-start py-6">
-          <p className="mt-4 text-xl font-extrabold tracking-tight text-start mb-4 font-serif text-primary">
-            Forgot your password?
-          </p>
-          <p className="mb-6 text-muted-foreground text-sm">
-            Enter your email address and we'll send you a link to reset your
-            password.
-          </p>
-          <Form {...form}>
-            <form
-              className="w-full space-y-4"
-              onSubmit={form.handleSubmit(onSubmit)}
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Email"
-                        className="w-full"
-                        {...field}
-                        disabled={forgotPasswordLoading || submitted}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="mt-4 w-full"
-                disabled={forgotPasswordLoading || submitted}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
+      <div className="w-full max-w-6xl grid lg:grid-cols-[60%_40%] xl:grid-cols-[65%_35%] bg-background rounded-2xl shadow-2xl overflow-hidden">
+        {/* Form Section */}
+        <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12">
+          <div className="w-full max-w-md mx-auto space-y-8">
+            {/* Header */}
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
+                Forgot Password?
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Enter your email address and we'll send you a link to reset your
+                password.
+              </p>
+            </div>
+
+            {/* Form */}
+            <Form {...form}>
+              <form
+                className="space-y-6"
+                onSubmit={form.handleSubmit(onSubmit)}
               >
-                {forgotPasswordLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "Send Reset Link"
-                )}
-              </Button>
-            </form>
-          </Form>
-          <div className="flex flex-row justify-between w-full">
-            <p className="mt-5 text-sm text-center">
-              Remembered your password?
-              <a href="/login" className="ml-1 underline text-muted-foreground">
-                Log in
-              </a>
-            </p>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Email Address
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email address"
+                          className="h-12 text-base"
+                          {...field}
+                          disabled={forgotPasswordLoading || submitted}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-medium"
+                  disabled={forgotPasswordLoading || submitted}
+                >
+                  {forgotPasswordLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Sending reset link...</span>
+                    </div>
+                  ) : (
+                    "Send Reset Link"
+                  )}
+                </Button>
+              </form>
+            </Form>
+
+            {/* Back to Login */}
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Remembered your password?{" "}
+                <a
+                  href="/login"
+                  className="font-medium text-primary hover:underline transition-colors"
+                >
+                  Log in
+                </a>
+              </p>
+            </div>
           </div>
         </div>
-        <div className="bg-muted hidden lg:block">
+
+        {/* Image Section */}
+        <div className="relative hidden lg:block bg-gradient-to-br from-primary/10 to-primary/5">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
           <img
             src="/side3.jpg"
-            alt="forgot password"
-            className="w-full h-full object-cover"
+            alt="Password Reset"
+            className="w-full h-full object-cover mix-blend-multiply"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
         </div>
       </div>
+
       {/* Success Modal */}
       <Dialog open={submitted} onOpenChange={setSubmitted}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Password Reset Email Sent</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg font-semibold">
+              Password Reset Email Sent
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
               If an account with that email exists, you will receive a password
               reset link shortly.
+              <br />
               <br />
               Please check your inbox (and spam folder).
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <DialogClose asChild>
               <Button
-                className="w-full mt-2"
+                variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => setSubmitted(false)}
               >
                 Close
@@ -135,7 +162,7 @@ const ForgotPasswordPage = () => {
             </DialogClose>
             <a
               href="/login"
-              className="block w-full text-center mt-2 underline text-primary"
+              className="block w-full sm:w-auto text-center px-4 py-2 text-sm font-medium text-primary hover:underline transition-colors"
             >
               Return to Login
             </a>

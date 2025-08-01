@@ -55,6 +55,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { createPortal } from "react-dom";
+import { axiosInstance } from "../../src/lib/axios";
 
 // These are only for the invite modal, not for the employee list
 const statuses = ["All Statuses", "ACTIVE", "ON_LEAVE", "INACTIVE"];
@@ -71,15 +72,18 @@ const departmentFormSchema = z.object({
 });
 
 // Custom Modal for Add Department
-function CustomModal({ open, onClose, children }) {
+function CustomModal({ open, onClose, children, className = "" }) {
   if (!open) return null;
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       tabIndex={-1}
-      onPointerDown={(e) => e.stopPropagation()}
+      onClick={onClose}
     >
-      <div className="bg-white dark:bg-background rounded-lg shadow-lg p-6 min-w-[400px] max-w-[520px] relative">
+      <div
+        className={`bg-white dark:bg-background rounded-lg shadow-lg p-6 relative ${className}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-white"
           onClick={onClose}
@@ -108,6 +112,10 @@ export default function EmployeesPage() {
   const [addingDepartment, setAddingDepartment] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [departmentModalOpen, setDepartmentModalOpen] = useState(false);
+  const [employeeDetailsModalOpen, setEmployeeDetailsModalOpen] =
+    useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [loadingEmployeeDetails, setLoadingEmployeeDetails] = useState(false);
 
   // Auth store for departments and invite logic
   const {
@@ -119,11 +127,8 @@ export default function EmployeesPage() {
   } = useAuthStore();
 
   // Employee store (dynamic, from backend)
-  const {
-    employeeList,
-    employeePagination,
-    fetchEmployees,
-  } = useEmployeeStore();
+  const { employeeList, employeePagination, fetchEmployees } =
+    useEmployeeStore();
 
   useEffect(() => {
     fetchDepartments();
@@ -161,6 +166,26 @@ export default function EmployeesPage() {
     setAddingDepartment(false);
     setDepartmentModalOpen(false);
   }
+
+  const handleViewEmployeeDetails = async (employee) => {
+    setSelectedEmployee(employee);
+    setEmployeeDetailsModalOpen(true);
+    setLoadingEmployeeDetails(true);
+
+    try {
+      const response = await axiosInstance.get(`/employee/${employee.id}`);
+      setSelectedEmployee(response.data.data);
+    } catch (error) {
+      console.error("Error fetching employee details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load employee details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingEmployeeDetails(false);
+    }
+  };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -237,7 +262,6 @@ export default function EmployeesPage() {
               Showing {employeeList.length} of{" "}
               {employeePagination?.total ?? employeeList.length} employees
             </p>
-
           </div>
         </CardContent>
       </Card>
@@ -287,7 +311,11 @@ export default function EmployeesPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Profile</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleViewEmployeeDetails(employee)}
+                    >
+                      View Details
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Edit Employee</DropdownMenuItem>
                     <DropdownMenuItem>View Attendance</DropdownMenuItem>
                     <DropdownMenuItem>Performance History</DropdownMenuItem>
@@ -573,6 +601,295 @@ export default function EmployeesPage() {
             Cancel
           </Button>
         </div>
+      </CustomModal>
+
+      {/* Employee Details Modal */}
+      <CustomModal
+        open={employeeDetailsModalOpen}
+        onClose={() => setEmployeeDetailsModalOpen(false)}
+        className="min-w-[800px] max-w-[1200px] max-h-[90vh] overflow-y-auto"
+      >
+        {loadingEmployeeDetails ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-2 text-muted-foreground">
+              Loading employee details...
+            </span>
+          </div>
+        ) : selectedEmployee ? (
+          <div className="w-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
+                  {selectedEmployee.profilePic ? (
+                    <img
+                      src={selectedEmployee.profilePic}
+                      alt={selectedEmployee.name}
+                      className="w-10 h-10 object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-white font-semibold text-sm">
+                      {selectedEmployee.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    Employee Details
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEmployee.name}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg text-foreground border-b pb-2">
+                  Basic Information
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Name
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.name}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Email
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.email}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Position
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.position || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Role
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.role}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Status
+                    </span>
+                    <Badge variant={getStatusVariant(selectedEmployee.status)}>
+                      {selectedEmployee.status === "ACTIVE"
+                        ? "Active"
+                        : selectedEmployee.status === "ON_LEAVE"
+                        ? "On Leave"
+                        : selectedEmployee.status === "INACTIVE"
+                        ? "Inactive"
+                        : selectedEmployee.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Department & Contact */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg text-foreground border-b pb-2">
+                  Department & Contact
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Department
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.department?.name || "Not assigned"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Phone
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.phone || "Not provided"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Address
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.address || "Not provided"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Emergency Contact
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.emergencyContact || "Not provided"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Date of Birth
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.dateOfBirth
+                        ? new Date(
+                            selectedEmployee.dateOfBirth
+                          ).toLocaleDateString()
+                        : "Not provided"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Employment & Company */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg text-foreground border-b pb-2">
+                  Employment & Company
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Company
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.company?.companyName || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Employment Type
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.employmentType === "FULL_TIME"
+                        ? "Full Time"
+                        : selectedEmployee.employmentType === "PART_TIME"
+                        ? "Part Time"
+                        : selectedEmployee.employmentType === "CONTRACT"
+                        ? "Contract"
+                        : selectedEmployee.employmentType === "INTERNSHIP"
+                        ? "Internship"
+                        : selectedEmployee.employmentType === "FREELANCE"
+                        ? "Freelance"
+                        : selectedEmployee.employmentType || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Start Date
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.createdAt
+                        ? new Date(
+                            selectedEmployee.createdAt
+                          ).toLocaleDateString()
+                        : "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Last Login
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.lastLogin
+                        ? new Date(
+                            selectedEmployee.lastLogin
+                          ).toLocaleDateString()
+                        : "Never"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Salary
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {selectedEmployee.salary
+                        ? `$${selectedEmployee.salary.toLocaleString()}`
+                        : "Not specified"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Attendance - Full Width */}
+            <div className="mt-6 space-y-4">
+              <h3 className="font-semibold text-lg text-foreground border-b pb-2">
+                Recent Attendance
+              </h3>
+              {selectedEmployee.attendances &&
+              selectedEmployee.attendances.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedEmployee.attendances.map((attendance) => (
+                    <div
+                      key={attendance.id}
+                      className="p-3 border rounded-lg bg-muted/30"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm font-medium text-foreground">
+                          {new Date(attendance.date).toLocaleDateString()}
+                        </span>
+                        <Badge
+                          variant={
+                            attendance.status === "ON_TIME"
+                              ? "secondary"
+                              : attendance.status === "LATE"
+                              ? "outline"
+                              : attendance.status === "ABSENT"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
+                          {attendance.status === "ON_TIME"
+                            ? "On Time"
+                            : attendance.status === "LATE"
+                            ? "Late"
+                            : attendance.status === "ABSENT"
+                            ? "Absent"
+                            : attendance.status}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {attendance.timeIn
+                          ? new Date(attendance.timeIn).toLocaleTimeString()
+                          : "No check-in"}{" "}
+                        -
+                        {attendance.timeOut
+                          ? new Date(attendance.timeOut).toLocaleTimeString()
+                          : "No check-out"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No recent attendance records
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No employee data available</p>
+          </div>
+        )}
       </CustomModal>
     </div>
   );

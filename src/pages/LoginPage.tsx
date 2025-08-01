@@ -45,93 +45,118 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center ">
-      <div className="w-full h-full grid lg:grid-cols-[70%_30%]">
-        <div className="max-w-lg m-auto w-full flex flex-col items-start py-6">
-          <p className="mt-4 text-xl font-extrabold tracking-tight text-start mb-4 font-serif text-primary">
-            Login to your HR Management System account
-          </p>
-          <Form {...form}>
-            <form
-              className="w-full space-y-4"
-              onSubmit={form.handleSubmit(onSubmit)}
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Email"
-                        className="w-full"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Password"
-                        className="w-full"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="mt-4 w-full"
-                disabled={loggingIn}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
+      <div className="w-full max-w-6xl grid lg:grid-cols-[60%_40%] xl:grid-cols-[65%_35%] bg-background rounded-2xl shadow-2xl overflow-hidden">
+        {/* Form Section */}
+        <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12">
+          <div className="w-full max-w-md mx-auto space-y-8">
+            {/* Header */}
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
+                Welcome Back
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Login to your HR Management System account
+              </p>
+            </div>
+
+            {/* Form */}
+            <Form {...form}>
+              <form
+                className="space-y-6"
+                onSubmit={form.handleSubmit(onSubmit)}
               >
-                {loggingIn ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "Login"
-                )}
-              </Button>
-            </form>
-          </Form>
-          <div className="flex flex-row justify-between w-full">
-            <p className="mt-5 text-sm text-center">
-              Don't have an account?
-              <a
-                href="/company-signup"
-                className="ml-1 underline text-muted-foreground"
-              >
-                Sign up
-              </a>
-            </p>
-            <p className="mt-5 text-sm text-center">
-              Forgot password?
-              <a
-                href="/forgot-password"
-                className="ml-1 underline text-muted-foreground"
-              >
-                Reset password
-              </a>
-            </p>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          className="h-12 text-base"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Password
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
+                          className="h-12 text-base"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-medium"
+                  disabled={loggingIn}
+                >
+                  {loggingIn ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Signing in...</span>
+                    </div>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+            </Form>
+
+            {/* Links */}
+            <div className="space-y-4 text-center">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-sm">
+                <p className="text-muted-foreground">
+                  Don't have an account?{" "}
+                  <a
+                    href="/company-signup"
+                    className="font-medium text-primary hover:underline transition-colors"
+                  >
+                    Sign up
+                  </a>
+                </p>
+                <p className="text-muted-foreground">
+                  <a
+                    href="/forgot-password"
+                    className="font-medium text-primary hover:underline transition-colors"
+                  >
+                    Forgot password?
+                  </a>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="bg-muted hidden lg:block">
+
+        {/* Image Section */}
+        <div className="relative hidden lg:block bg-gradient-to-br from-primary/10 to-primary/5">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
           <img
             src="/side1.jpg"
-            alt="login"
-            className="w-full h-full object-cover"
+            alt="HR Management System"
+            className="w-full h-full object-cover mix-blend-multiply"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
         </div>
       </div>
     </div>
