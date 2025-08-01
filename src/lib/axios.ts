@@ -4,7 +4,7 @@ export const axiosInstance = axios.create({
   baseURL:
     import.meta.env.MODE === "development"
       ? "/api"
-      : import.meta.env.VITE_API_URL + "/api",  
+      : import.meta.env.VITE_API_URL + "/api",
   withCredentials: true,
 });
 

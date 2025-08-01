@@ -82,7 +82,7 @@ function App() {
       setAuthChecked(true);
     };
     verifyAuth();
-  }, []); // Remove checkAuth dependency to prevent infinite loop
+  }, [checkAuth]);
 
   if (!authChecked || checkingAuth) {
     return (
