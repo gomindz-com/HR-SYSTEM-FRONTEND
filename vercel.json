@@ -1,16 +1,27 @@
 {
-  "rewrites": [
+  "builds": [
     {
-      "source": "/assets/:path*",
-      "destination": "/assets/:path*"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
-      "source": "/favicon.ico",
-      "destination": "/favicon.ico"
+      "src": "/favicon\\.ico",
+      "dest": "/favicon.ico"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/robots\\.txt",
+      "dest": "/robots.txt"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
