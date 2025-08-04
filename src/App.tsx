@@ -124,21 +124,20 @@ function App() {
       <Routes>
         {/* Public and Auth Routes */}
         <Route
-  path="/"
-  element={
-    !authUser ? (
-      <FullScreenLayout>  // ✅ Add this wrapper
-        <HomePage />
-      </FullScreenLayout>
-    ) : isEmployee ? (
-      <Navigate to="/my-portal" replace />
-    ) : authUser.role === "HR" ? (
-      <Navigate to="/hr-choice" replace />
-    ) : (
-      <Navigate to="/dashboard" replace />
-    )
-  }
-/>        <Route
+          path="/"
+          element={
+            !authUser ? (
+              <HomePage />
+            ) : isEmployee ? (
+              <Navigate to="/my-portal" replace />
+            ) : authUser.role === "HR" ? (
+              <Navigate to="/hr-choice" replace />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          }
+        />
+        <Route
           path="/attendance-qr"
           element={
             authUser && authUser.role === "HR" ? (
