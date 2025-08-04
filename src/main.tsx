@@ -5,6 +5,9 @@ import "./index.css";
 // Mount the app
 createRoot(document.getElementById("root")!).render(<RootApp />);
 
+// Track update notification state
+let updateNotificationShown = false;
+
 // Register service worker for PWA
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -22,10 +25,12 @@ if ("serviceWorker" in navigator) {
             newWorker.addEventListener("statechange", () => {
               if (
                 newWorker.state === "installed" &&
-                navigator.serviceWorker.controller
+                navigator.serviceWorker.controller &&
+                !updateNotificationShown
               ) {
                 // New service worker is available
                 console.log("New service worker available");
+                updateNotificationShown = true;
 
                 // Create mobile-friendly update notification
                 showUpdateNotification();
@@ -71,7 +76,7 @@ function showUpdateNotification() {
       gap: 12px;
     ">
       <span>🔄 New version available</span>
-      <button onclick="window.location.reload()" style="
+      <button onclick="handleUpdate()" style="
         background: white;
         color: #3b82f6;
         border: none;
@@ -82,7 +87,7 @@ function showUpdateNotification() {
         font-size: 13px;
         white-space: nowrap;
       ">Update Now</button>
-      <button onclick="this.parentElement.remove()" style="
+      <button onclick="handleDismiss()" style="
         background: transparent;
         color: white;
         border: 1px solid rgba(255,255,255,0.3);
@@ -105,3 +110,28 @@ function showUpdateNotification() {
     }
   }, 10000);
 }
+
+// Handle update button click
+function handleUpdate() {
+  const notification = document.getElementById("update-notification");
+  if (notification) {
+    notification.remove();
+  }
+  window.location.reload();
+}
+
+// Handle dismiss button click
+function handleDismiss() {
+  const notification = document.getElementById("update-notification");
+  if (notification) {
+    notification.remove();
+  }
+  // Reset the flag after a delay so it can show again for future updates
+  setTimeout(() => {
+    updateNotificationShown = false;
+  }, 30000); // 30 seconds delay
+}
+
+// Make functions globally available for onclick handlers
+(window as any).handleUpdate = handleUpdate;
+(window as any).handleDismiss = handleDismiss;
