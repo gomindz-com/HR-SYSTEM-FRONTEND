@@ -76,6 +76,24 @@ function App() {
   const { checkAuth, checkingAuth, authUser } = useAuthStore();
   const [authChecked, setAuthChecked] = useState(false);
 
+
+
+  useEffect(() => {
+       if ("serviceWorker" in navigator) {
+         // 🎯 1) Unregister any existing SWs (the broken v1)
+         navigator.serviceWorker
+           .getRegistrations()
+           .then((regs) => regs.forEach((r) => r.unregister()))
+           .catch((err) => console.warn("SW unregister failed:", err));
+   
+         navigator.serviceWorker
+           .register("/sw.js")
+           .then((reg) => console.log("✅ SW registered:", reg))
+           .catch((err) => console.error("❌ SW registration failed:", err));
+       }
+     }, []);
+
+
   useEffect(() => {
     const verifyAuth = async () => {
       await checkAuth();
