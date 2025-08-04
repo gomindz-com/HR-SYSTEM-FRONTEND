@@ -1,12 +1,9 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
-
-
-
 
 export const formatDateTime = (date: string | Date): string => {
   const d = new Date(date);
@@ -31,8 +28,19 @@ export const formatDateOnly = (date: string | Date): string => {
   return d.toLocaleDateString("en-US", options);
 };
 
-export const formatTimeOnly = (date: string | Date): string => {
+export const formatTimeOnly = (date: string | Date | null): string => {
+  // Handle null values (for absent records)
+  if (!date) {
+    return "-";
+  }
+
   const d = new Date(date);
+
+  // Check if the date is valid (not Invalid Date)
+  if (isNaN(d.getTime())) {
+    return "-";
+  }
+
   const options: Intl.DateTimeFormatOptions = {
     hour: "2-digit",
     minute: "2-digit",

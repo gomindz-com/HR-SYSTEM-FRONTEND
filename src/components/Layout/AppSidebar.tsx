@@ -79,7 +79,7 @@ export function AppSidebar() {
       className={`border-r transition-all duration-300 ${
         collapsed ? "w-14" : "w-64"
       } bg-sidebar`}
-      collapsible="icon"
+      collapsible="icon" 
     >
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">

@@ -7,8 +7,8 @@ interface Attendance {
   employeeId: string;
   companyId: string;
   date: string;
-  timeIn: string;
-  timeOut: string;
+  timeIn: string | null;
+  timeOut: string | null;
   status: string;
   employee?: {
     id: string;
