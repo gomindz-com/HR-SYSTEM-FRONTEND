@@ -1,24 +1,24 @@
 // Cache version and app shell
 const CACHE_NAME = "hr-cache-v1";
-const ASSETS_TO_CACHE = [
-  "/",
+const APP_SHELL = [
+  "/",             // navigation shell
   "/index.html",
   "/manifest.json",
   "/favicon.ico",
   "/gomind.png",
 ];
 
-// Install event: cache app shell
+// Install: cache app shell
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[Service Worker] Caching app shell");
-      return cache.addAll(ASSETS_TO_CACHE);
+      console.log("[SW] Caching app shell");
+      return cache.addAll(APP_SHELL);
     })
   );
 });
 
-// Activate event: clean old caches
+// Activate: remove old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
@@ -33,11 +33,20 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch event: serve from cache, fallback to network
+// Fetch: differentiate navigation vs. static asset
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  const { request } = event;
+
+  // 1) If this is a navigation request (HTML shell):
+  if (request.mode === "navigate") {
+    event.respondWith(
+      caches.match("/")            // serve cached shell
+        .then((resp) => resp || fetch(request))
+        .catch(() => caches.match("/"))
+    );
+    return;
+  }
+
+  // 2) Otherwise—static asset or API—just pass through
+  event.respondWith(fetch(request));
 });
