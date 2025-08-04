@@ -241,3 +241,130 @@
 #qr-reader-container__dashboard_section {
   display: none !important;
 }
+
+/* Custom breakpoint for extra small screens */
+@media (max-width: 475px) {
+  .xs\:inline {
+    display: inline;
+  }
+
+  .xs\:hidden {
+    display: none;
+  }
+
+  .xs\:text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .xs\:text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  .xs\:px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .xs\:py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .xs\:h-8 {
+    height: 2rem;
+  }
+
+  .xs\:w-8 {
+    width: 2rem;
+  }
+
+  .xs\:space-x-1 > * + * {
+    margin-left: 0.25rem;
+  }
+
+  .xs\:gap-1 {
+    gap: 0.25rem;
+  }
+}
+
+/* Ensure tables are scrollable on mobile */
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Reduce table cell padding on mobile */
+  .table-mobile td,
+  .table-mobile th {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Improve button touch targets on mobile */
+@media (max-width: 640px) {
+  button,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ensure buttons are large enough for touch */
+  .btn-mobile {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+/* Prevent zoom on input focus for iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* Smooth scrolling for better mobile experience */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improve focus indicators for accessibility */
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Animation for fade-in effect */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}

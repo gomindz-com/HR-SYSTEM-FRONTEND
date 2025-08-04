@@ -251,106 +251,109 @@ const EmployeePortal = () => {
         </div>
       )}
       <div className="max-w-7xl mx-auto">
-        {/* Header - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 rounded-full overflow-hidden">
-              <AvatarImage
-                src={authUser?.profilePic}
-                alt="Profile Picture"
-                className="rounded-full object-cover"
-              />
-              <AvatarFallback className="rounded-full bg-purple-100 text-purple-600 text-lg font-semibold">
-                {authUser?.name?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground truncate">
-                {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
-                {authUser?.name} • {authUser?.position} •{" "}
-                {authUser?.company?.companyName || "Unknown Company"}
-              </p>
+        {/* Header - Completely Mobile Responsive */}
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          {/* Top Row - Avatar, Name, and Update Button */}
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0">
+                <AvatarImage
+                  src={authUser?.profilePic}
+                  alt="Profile Picture"
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-purple-100 text-purple-600 text-sm sm:text-base font-semibold">
+                  {authUser?.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
+                  {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
+                  {authUser?.name} • {authUser?.position}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {authUser?.company?.companyName || "Unknown Company"}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center space-x-2 text-xs sm:text-sm"
-                onClick={handleUpdateProfile}
-              >
-                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden max-md:inline">Update</span>
-                <span className="max-md:hidden">Update Profile</span>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+              onClick={handleUpdateProfile}
+            >
+              <User className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Update</span>
+              <span className="xs:hidden">Edit</span>
+            </Button>
           </div>
 
-          {/* Time and Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="text-center sm:text-right">
-              <p className="text-xs sm:text-sm text-muted-foreground">
+          {/* Second Row - Time Display */}
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="text-center bg-muted/50 rounded-lg px-3 py-2 sm:px-4 sm:py-3">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
                 Current Time
               </p>
-              <p className="text-lg sm:text-xl font-semibold text-foreground">
+              <p className="text-base sm:text-lg md:text-xl font-semibold text-foreground">
                 {currentTime}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-              {/* Check In Dialog */}
-              <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    disabled={isCheckedIn}
-                    className="bg-success hover:bg-success/90 text-success-foreground w-full sm:w-auto"
-                    size="sm"
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    Check In
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
-                  <AttendanceQrScanner
-                    key={checkInOpen ? "check-in-open" : "check-in-closed"}
-                    mode="check-in"
-                    onSuccess={handleCheckIn}
-                  />
-                </DialogContent>
-              </Dialog>
+          </div>
 
-              {/* Check Out Dialog */}
-              <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="w-full sm:w-auto"
-                    size="sm"
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    Check Out
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
-                  <AttendanceQrScanner
-                    key={checkOutOpen ? "check-out-open" : "check-out-closed"}
-                    mode="check-out"
-                    onSuccess={handleCheckOut}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+          {/* Third Row - Check In/Out Buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            {/* Check In Dialog */}
+            <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={isCheckedIn}
+                  className="bg-success hover:bg-success/90 text-success-foreground h-10 sm:h-11 text-sm sm:text-base font-medium"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Check In
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
+                <AttendanceQrScanner
+                  key={checkInOpen ? "check-in-open" : "check-in-closed"}
+                  mode="check-in"
+                  onSuccess={handleCheckIn}
+                />
+              </DialogContent>
+            </Dialog>
+
+            {/* Check Out Dialog */}
+            <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="h-10 sm:h-11 text-sm sm:text-base font-medium"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Check Out
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
+                <AttendanceQrScanner
+                  key={checkOutOpen ? "check-out-open" : "check-out-closed"}
+                  mode="check-out"
+                  onSuccess={handleCheckOut}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
         {/* Status Bar - Mobile Responsive */}
         <Card className="mb-4 sm:mb-6 shadow-[var(--shadow-soft)]">
-          <CardContent className="pt-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 lg:space-x-6">
+          <CardContent className="pt-3 sm:pt-4 md:pt-6">
+            <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+              <div className="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:space-x-4 lg:space-x-6">
                 <div className="flex items-center space-x-2">
                   <div
-                    className={`w-3 h-3 rounded-full ${
+                    className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
                       authUser.status === "ACTIVE"
                         ? "bg-success"
                         : authUser.status === "ON_LEAVE"
@@ -368,41 +371,40 @@ const EmployeePortal = () => {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  <User className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   <span className="text-xs sm:text-sm">
-                    Department:{" "}
                     {authUser.department?.name || "Unknown Department"}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   <span className="text-xs sm:text-sm">
-                    Today: {new Date().toLocaleDateString()}
+                    {new Date().toLocaleDateString()}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 sm:pl-3 sm:border-l sm:border-border">
+              <div className="flex items-center gap-2 sm:gap-3 pt-2 sm:pt-0 sm:border-l sm:border-border sm:pl-3">
                 {/* HR Dashboard Button - Only visible to HR */}
                 {authUser?.role === "HR" && (
                   <Button
                     variant="outline"
-                    className="flex items-center justify-center text-xs sm:text-sm"
+                    className="flex items-center justify-center text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                     onClick={() => navigate("/dashboard")}
                     size="sm"
                   >
                     <Building className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    <span className="hidden sm:inline">View Dashboard</span>
-                    <span className="sm:hidden">Dashboard</span>
+                    <span className="hidden sm:inline">Dashboard</span>
+                    <span className="sm:hidden">HR</span>
                   </Button>
                 )}
                 <Button
                   variant="ghost"
-                  className="flex items-center justify-center text-xs sm:text-sm"
+                  className="flex items-center justify-center text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                   onClick={handleLogout}
                   size="sm"
                 >
                   <span className="hidden sm:inline">Logout</span>
-                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4 font-extrabold text-primary" />
+                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 </Button>
               </div>
             </div>
@@ -413,28 +415,30 @@ const EmployeePortal = () => {
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
           {/* Attendance Table */}
           <Card className="animate-fade-in">
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="flex items-center text-lg sm:text-xl">
+            <CardHeader className="pb-3 sm:pb-4 md:pb-6">
+              <CardTitle className="flex items-center text-base sm:text-lg md:text-xl">
                 <Clock className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Attendance History
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0 sm:p-6">
+            <CardContent className="p-0 sm:p-4 md:p-6">
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm">
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
                         Employee
                       </TableHead>
-                      <TableHead className="text-xs sm:text-sm">Date</TableHead>
-                      <TableHead className="text-xs sm:text-sm">
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
+                        Date
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
                         Check In
                       </TableHead>
-                      <TableHead className="text-xs sm:text-sm">
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
                         Check Out
                       </TableHead>
-                      <TableHead className="text-xs sm:text-sm">
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
                         Status
                       </TableHead>
                     </TableRow>
@@ -462,9 +466,9 @@ const EmployeePortal = () => {
                     ) : (
                       myAttendaneList.map((record, index) => (
                         <TableRow key={index} className="hover:bg-muted/50">
-                          <TableCell className="py-2 sm:py-4">
+                          <TableCell className="py-2 sm:py-3 px-2 sm:px-4">
                             <div className="flex items-center space-x-2">
-                              <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
                                 <AvatarImage src={record.employee.profilePic} />
                               </Avatar>
                               <div className="flex flex-col gap-1 min-w-0">
@@ -477,22 +481,22 @@ const EmployeePortal = () => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium truncate text-xs sm:text-sm py-2 sm:py-4">
+                          <TableCell className="font-medium truncate text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                             {new Date(record.date).toLocaleDateString("en-US", {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
                             })}
                           </TableCell>
-                          <TableCell className="truncate text-xs sm:text-sm py-2 sm:py-4">
+                          <TableCell className="truncate text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                             {formatTimeOnly(record.timeIn)}
                           </TableCell>
-                          <TableCell className="truncate text-xs sm:text-sm py-2 sm:py-4">
+                          <TableCell className="truncate text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                             {record.timeOut !== null
                               ? formatTimeOnly(record.timeOut)
                               : "-"}
                           </TableCell>
-                          <TableCell className="py-2 sm:py-4">
+                          <TableCell className="py-2 sm:py-3 px-2 sm:px-4">
                             {getStatusBadge(record.status)}
                           </TableCell>
                         </TableRow>
@@ -534,7 +538,7 @@ const EmployeePortal = () => {
               </div>
 
               {/* Summary Stats - Mobile Responsive */}
-              <div className="mt-4 sm:mt-6 grid grid-cols-4 gap-2 sm:gap-4">
+              <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                 <div className="text-center p-2 sm:p-3 bg-success/10 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-success">
                     {attendanceStats.attendancePercentage}%
@@ -567,9 +571,9 @@ const EmployeePortal = () => {
 
           {/* Leave Requests Table */}
           <Card className="animate-fade-in">
-            <CardHeader className="pb-3 sm:pb-6">
+            <CardHeader className="pb-3 sm:pb-4 md:pb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                <CardTitle className="flex items-center text-lg sm:text-xl">
+                <CardTitle className="flex items-center text-base sm:text-lg md:text-xl">
                   <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Leave Requests
                 </CardTitle>
@@ -583,7 +587,7 @@ const EmployeePortal = () => {
                     <Button
                       disabled={true}
                       size="sm"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto h-9 sm:h-10"
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Request Leave
@@ -653,17 +657,21 @@ const EmployeePortal = () => {
                 </Dialog>
               </div>
             </CardHeader>
-            <CardContent className="p-0 sm:p-6">
+            <CardContent className="p-0 sm:p-4 md:p-6">
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm">Type</TableHead>
-                      <TableHead className="text-xs sm:text-sm">
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
+                        Type
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
                         Dates
                       </TableHead>
-                      <TableHead className="text-xs sm:text-sm">Days</TableHead>
-                      <TableHead className="text-xs sm:text-sm">
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
+                        Days
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
                         Status
                       </TableHead>
                     </TableRow>
@@ -671,10 +679,10 @@ const EmployeePortal = () => {
                   <TableBody>
                     {leaveRequestsData.map((request) => (
                       <TableRow key={request.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                        <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                           {request.type}
                         </TableCell>
-                        <TableCell className="py-2 sm:py-4">
+                        <TableCell className="py-2 sm:py-3 px-2 sm:px-4">
                           <div className="text-xs sm:text-sm">
                             <div>
                               {new Date(request.startDate).toLocaleDateString()}
@@ -687,10 +695,10 @@ const EmployeePortal = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm py-2 sm:py-4">
+                        <TableCell className="text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                           {request.days}
                         </TableCell>
-                        <TableCell className="py-2 sm:py-4">
+                        <TableCell className="py-2 sm:py-3 px-2 sm:px-4">
                           {getStatusBadge(request.status)}
                         </TableCell>
                       </TableRow>
