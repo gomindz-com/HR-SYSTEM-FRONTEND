@@ -1,10 +1,9 @@
-[[redirects]]
-  from = "/static/*"
-  to = "/static/:splat"
-  status = 200
+[build]
+  publish = "dist"
+  command = "npm run build"
 
 [[redirects]]
-  from = "/assets/*" 
+  from = "/assets/*"
   to = "/assets/:splat"
   status = 200
 
