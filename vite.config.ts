@@ -11,17 +11,11 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    sourcemap: false,
-    minify: "terser",
     rollupOptions: {
       output: {
         assetFileNames: "assets/[name].[hash].[ext]",
         chunkFileNames: "assets/[name].[hash].js",
         entryFileNames: "assets/[name].[hash].js",
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          router: ["react-router-dom"],
-        },
       },
     },
   },
