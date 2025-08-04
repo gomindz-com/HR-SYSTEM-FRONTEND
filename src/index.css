@@ -63,8 +63,16 @@
     --hr-chart-5: 43 96% 56%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 48%));
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(160 84% 39%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(221 83% 53%),
+      hsl(199 89% 48%)
+    );
+    --gradient-success: linear-gradient(
+      135deg,
+      hsl(142 76% 36%),
+      hsl(160 84% 39%)
+    );
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 16% 98%));
 
     /* Shadows */
@@ -123,7 +131,11 @@
     --input: 215 30% 15%;
     --ring: 221 83% 53%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 48%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(221 83% 53%),
+      hsl(199 89% 48%)
+    );
     --gradient-card: linear-gradient(145deg, hsl(215 30% 8%), hsl(215 30% 10%));
 
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.4);
@@ -149,4 +161,83 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom styles for html5-qrcode scanner */
+#qr-reader-container {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+#qr-reader-container video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 1rem !important;
+}
+
+#qr-reader-container__scan_region {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#qr-reader-container__scan_region > img {
+  border-radius: 1rem !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+#qr-reader-container__dashboard {
+  display: none !important;
+}
+
+#qr-reader-container__dashboard_section_swaplink {
+  display: none !important;
+}
+
+#qr-reader-container__dashboard_section_csr {
+  display: none !important;
+}
+
+#qr-reader-container__dashboard_section_torch {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  z-index: 10 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  border-radius: 50% !important;
+  padding: 8px !important;
+  color: white !important;
+}
+
+#qr-reader-container__dashboard_section_torch button {
+  background: none !important;
+  border: none !important;
+  color: white !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  border-radius: 4px !important;
+}
+
+#qr-reader-container__dashboard_section_torch button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure scanner elements are visible */
+#qr-reader-container__status_span {
+  display: none !important;
+}
+
+#qr-reader-container__camera_selection {
+  display: none !important;
+}
+
+#qr-reader-container__dashboard_section {
+  display: none !important;
 }
