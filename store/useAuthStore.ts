@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthStore>()(
       signingUp: false,
       loggingIn: false,
       loggingOut: false,
-      checkingAuth: false,
+      checkingAuth: true,
       forgotPasswordLoading: false,
       resetPasswordLoading: false,
       sendingInvitation: false,
