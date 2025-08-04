@@ -9,6 +9,7 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
@@ -451,7 +452,9 @@ export default function RootApp() {
       <TooltipProvider>
         <SidebarProvider>
           <BrowserRouter>
-            <App />
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
           </BrowserRouter>
         </SidebarProvider>
       </TooltipProvider>
