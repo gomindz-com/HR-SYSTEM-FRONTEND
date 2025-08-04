@@ -135,42 +135,40 @@ const EmployeePortal = () => {
     switch (status) {
       case "ON_TIME":
         return (
-          <Badge className="bg-success text-success-foreground text-xs">
+          <Badge className="bg-green-100 text-green-800 text-xs">
             <CheckCircle className="w-3 h-3 mr-1" />
             On Time
           </Badge>
         );
       case "LATE":
         return (
-          <Badge className="bg-warning text-warning-foreground text-xs">
+          <Badge className="bg-yellow-100 text-yellow-800 text-xs">
             <AlertCircle className="w-3 h-3 mr-1" />
             Late
           </Badge>
         );
       case "ABSENT":
         return (
-          <Badge variant="destructive" className="text-xs">
+          <Badge className="bg-red-100 text-red-800 text-xs">
             <XCircle className="w-3 h-3 mr-1" />
             Absent
           </Badge>
         );
       case "Approved":
         return (
-          <Badge className="bg-success text-success-foreground text-xs">
+          <Badge className="bg-green-100 text-green-800 text-xs">
             Approved
           </Badge>
         );
       case "Pending":
         return (
-          <Badge className="bg-warning text-warning-foreground text-xs">
+          <Badge className="bg-yellow-100 text-yellow-800 text-xs">
             Pending
           </Badge>
         );
       case "Rejected":
         return (
-          <Badge variant="destructive" className="text-xs">
-            Rejected
-          </Badge>
+          <Badge className="bg-red-100 text-red-800 text-xs">Rejected</Badge>
         );
       default:
         return (
@@ -539,8 +537,8 @@ const EmployeePortal = () => {
 
               {/* Summary Stats - Mobile Responsive */}
               <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-                <div className="text-center p-2 sm:p-3 bg-success/10 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-success">
+                <div className="text-center p-2 sm:p-3 bg-blue-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-blue-600">
                     {attendanceStats.attendancePercentage}%
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -553,14 +551,14 @@ const EmployeePortal = () => {
                   </p>
                   <p className="text-xs text-muted-foreground">On Time</p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-primary/10 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-primary">
+                <div className="text-center p-2 sm:p-3 bg-red-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-red-600">
                     {attendanceStats.daysAbsent}
                   </p>
                   <p className="text-xs text-muted-foreground">Days Absent</p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-warning/10 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-warning">
+                <div className="text-center p-2 sm:p-3 bg-yellow-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-yellow-600">
                     {attendanceStats.daysLate}
                   </p>
                   <p className="text-xs text-muted-foreground">Late Days</p>
@@ -709,20 +707,22 @@ const EmployeePortal = () => {
 
               {/* Leave Balance - Mobile Responsive */}
               <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
-                <div className="text-center p-2 sm:p-3 bg-primary/10 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-primary">
+                <div className="text-center p-2 sm:p-3 bg-blue-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-blue-600">
                     18
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Days Available
                   </p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-warning/10 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-warning">7</p>
+                <div className="text-center p-2 sm:p-3 bg-yellow-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-yellow-600">
+                    7
+                  </p>
                   <p className="text-xs text-muted-foreground">Days Used</p>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-muted rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-muted-foreground">
+                <div className="text-center p-2 sm:p-3 bg-gray-100 rounded-lg">
+                  <p className="text-sm sm:text-lg font-bold text-gray-600">
                     2
                   </p>
                   <p className="text-xs text-muted-foreground">Pending</p>
