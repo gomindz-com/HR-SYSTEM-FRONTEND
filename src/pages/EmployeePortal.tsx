@@ -251,95 +251,98 @@ const EmployeePortal = () => {
         </div>
       )}
       <div className="max-w-7xl mx-auto">
-        {/* Header - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 rounded-full overflow-hidden">
-              <AvatarImage
-                src={authUser?.profilePic}
-                alt="Profile Picture"
-                className="rounded-full object-cover"
-              />
-              <AvatarFallback className="rounded-full bg-purple-100 text-purple-600 text-lg font-semibold">
-                {authUser?.name?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground truncate">
-                {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
-                {authUser?.name} • {authUser?.position} •{" "}
-                {authUser?.company?.companyName || "Unknown Company"}
-              </p>
+        {/* Header - Super Responsive */}
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          {/* Top Row - Avatar, Name, and Update Button */}
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0">
+                <AvatarImage
+                  src={authUser?.profilePic}
+                  alt="Profile Picture"
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-purple-100 text-purple-600 text-sm sm:text-base font-semibold">
+                  {authUser?.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
+                  {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
+                  {authUser?.name} • {authUser?.position}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {authUser?.company?.companyName || "Unknown Company"}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center space-x-2 text-xs sm:text-sm"
-                onClick={handleUpdateProfile}
-              >
-                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Update Profile</span>
-                <span className="sm:hidden">Update</span>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+              onClick={handleUpdateProfile}
+            >
+              <User className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Update Profile</span>
+              <span className="sm:hidden">Update</span>
+            </Button>
           </div>
 
-          {/* Time and Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="text-center sm:text-right">
-              <p className="text-xs sm:text-sm text-muted-foreground">
+          {/* Second Row - Time Display */}
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="text-center bg-muted/50 rounded-lg px-3 py-2 sm:px-4 sm:py-3">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
                 Current Time
               </p>
-              <p className="text-lg sm:text-xl font-semibold text-foreground">
+              <p className="text-base sm:text-lg md:text-xl font-semibold text-foreground">
                 {currentTime}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-              {/* Check In Dialog */}
-              <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    disabled={isCheckedIn}
-                    className="bg-success hover:bg-success/90 text-success-foreground w-full sm:w-auto"
-                    size="sm"
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    Check In
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
-                  <AttendanceQrScanner
-                    key={checkInOpen ? "check-in-open" : "check-in-closed"}
-                    mode="check-in"
-                    onSuccess={handleCheckIn}
-                  />
-                </DialogContent>
-              </Dialog>
+          </div>
 
-              {/* Check Out Dialog */}
-              <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="w-full sm:w-auto"
-                    size="sm"
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    Check Out
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
-                  <AttendanceQrScanner
-                    key={checkOutOpen ? "check-out-open" : "check-out-closed"}
-                    mode="check-out"
-                    onSuccess={handleCheckOut}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+          {/* Third Row - Check In/Out Buttons */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            {/* Check In Dialog */}
+            <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={isCheckedIn}
+                  className="bg-green-600 hover:bg-green-700 text-white h-10 sm:h-11 text-sm sm:text-base font-medium"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Check In
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
+                <AttendanceQrScanner
+                  key={checkInOpen ? "check-in-open" : "check-in-closed"}
+                  mode="check-in"
+                  onSuccess={handleCheckIn}
+                />
+              </DialogContent>
+            </Dialog>
+
+            {/* Check Out Dialog */}
+            <Dialog open={checkOutOpen} onOpenChange={setCheckOutOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="h-10 sm:h-11 text-sm sm:text-base font-medium"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Check Out
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
+                <AttendanceQrScanner
+                  key={checkOutOpen ? "check-out-open" : "check-out-closed"}
+                  mode="check-out"
+                  onSuccess={handleCheckOut}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
