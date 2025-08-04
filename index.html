@@ -43,10 +43,37 @@
 
     <!-- Browser Tab Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- ─────────────────────────────────────────────────── -->
+    <!-- 1) Unregister any old service workers immediately -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(r => r.unregister());
+        });
+      }
+    </script>
+    <!-- ─────────────────────────────────────────────────── -->
+
   </head>
 
   <body>
     <div id="root"></div>
+
+    <!-- 2) Your main application bundle -->
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- ─────────────────────────────────────────────────── -->
+    <!-- 3) Register the updated service worker after app loads -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then(reg => console.log('✅ New SW registered:', reg))
+          .catch(err => console.error('❌ SW registration failed:', err));
+      }
+    </script>
+    <!-- ─────────────────────────────────────────────────── -->
+
   </body>
 </html>
