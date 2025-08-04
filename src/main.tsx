@@ -5,6 +5,8 @@ import "./index.css";
 // Mount the app
 createRoot(document.getElementById("root")!).render(<RootApp />);
 
+
+
 // Register service worker for PWA
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
