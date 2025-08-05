@@ -9,14 +9,14 @@ const HRChoicePage = () => {
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
 
-  // Redirect if not HR
+  // Redirect if user is EMPLOYEE
   React.useEffect(() => {
-    if (authUser && authUser.role !== "HR") {
-      navigate(authUser.role === "EMPLOYEE" ? "/my-portal" : "/dashboard");
+    if (authUser && authUser.role === "EMPLOYEE") {
+      navigate("/my-portal");
     }
   }, [authUser, navigate]);
 
-  if (!authUser || authUser.role !== "HR") {
+  if (!authUser || authUser.role === "EMPLOYEE") {
     return null;
   }
 
@@ -31,6 +31,7 @@ const HRChoicePage = () => {
           <p className="text-lg text-gray-600">
             Choose how you'd like to use the system today
           </p>
+          <p className="text-sm text-gray-500 mt-2">Role: {authUser.role}</p>
         </div>
 
         {/* Choice Cards */}
@@ -42,19 +43,19 @@ const HRChoicePage = () => {
                 <Building className="w-8 h-8 text-blue-600" />
               </div>
               <CardTitle className="text-xl text-gray-900">
-                HR Dashboard
+                Management Dashboard
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-gray-600 mb-6">
-                Access the full HR management system. Manage employees, view
+                Access the full management system. Manage employees, view
                 reports, handle payroll, and oversee company operations.
               </p>
               <Button
                 onClick={() => navigate("/dashboard")}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Go to HR Dashboard
+                Go to Management Dashboard
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>

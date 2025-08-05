@@ -70,13 +70,9 @@ function AppLayout({ children }) {
   );
 }
 
-
 function App() {
   const { checkAuth, checkingAuth, authUser } = useAuthStore();
   const [authChecked, setAuthChecked] = useState(false);
-
-
-  
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -132,7 +128,7 @@ function App() {
               <HomePage />
             ) : isEmployee ? (
               <Navigate to="/my-portal" replace />
-            ) : authUser.role === "HR" ? (
+            ) : authUser.role !== "EMPLOYEE" ? (
               <Navigate to="/hr-choice" replace />
             ) : (
               <Navigate to="/dashboard" replace />
@@ -142,12 +138,12 @@ function App() {
         <Route
           path="/attendance-qr"
           element={
-            authUser && authUser.role === "HR" ? (
+            authUser && authUser.role !== "EMPLOYEE" ? (
               <FullScreenLayout>
                 <AttendanceQrDisplayPage />
               </FullScreenLayout>
             ) : authUser ? (
-              // If logged in but not HR, redirect to dashboard or my-portal
+              // If logged in but is EMPLOYEE, redirect to my-portal
               authUser.role === "EMPLOYEE" ? (
                 <Navigate to="/my-portal" />
               ) : (
@@ -162,9 +158,9 @@ function App() {
         <Route
           path="/my-portal"
           element={
-            authUser && (isEmployee || authUser.role === "HR") ? (
+            authUser && (isEmployee || authUser.role !== "EMPLOYEE") ? (
               <EmployeePortal />
-            ) : authUser && !isEmployee && authUser.role !== "HR" ? (
+            ) : authUser && !isEmployee && authUser.role === "EMPLOYEE" ? (
               <Navigate to="/dashboard" />
             ) : (
               <Navigate to="/login" />
@@ -174,7 +170,7 @@ function App() {
         <Route
           path="/hr-choice"
           element={
-            authUser && authUser.role === "HR" ? (
+            authUser && authUser.role !== "EMPLOYEE" ? (
               <FullScreenLayout>
                 <HRChoicePage />
               </FullScreenLayout>
@@ -192,7 +188,7 @@ function App() {
               <LoginPage />
             ) : isEmployee ? (
               <Navigate to="/my-portal" />
-            ) : authUser.role === "HR" ? (
+            ) : authUser.role !== "EMPLOYEE" ? (
               <Navigate to="/hr-choice" />
             ) : (
               <Navigate to="/dashboard" />
@@ -206,7 +202,7 @@ function App() {
               <CompanySignup />
             ) : isEmployee ? (
               <Navigate to="/my-portal" />
-            ) : authUser.role === "HR" ? (
+            ) : authUser.role !== "EMPLOYEE" ? (
               <Navigate to="/hr-choice" />
             ) : (
               <Navigate to="/dashboard" />
@@ -220,7 +216,7 @@ function App() {
               <ForgotPasswordPage />
             ) : isEmployee ? (
               <Navigate to="/my-portal" />
-            ) : authUser.role === "HR" ? (
+            ) : authUser.role !== "EMPLOYEE" ? (
               <Navigate to="/hr-choice" />
             ) : (
               <Navigate to="/dashboard" />
@@ -234,7 +230,7 @@ function App() {
               <ResetPasswordPage />
             ) : isEmployee ? (
               <Navigate to="/my-portal" />
-            ) : authUser.role === "HR" ? (
+            ) : authUser.role !== "EMPLOYEE" ? (
               <Navigate to="/hr-choice" />
             ) : (
               <Navigate to="/dashboard" />
@@ -248,7 +244,7 @@ function App() {
               <AcceptInvitationPage />
             ) : isEmployee ? (
               <Navigate to="/my-portal" />
-            ) : authUser.role === "HR" ? (
+            ) : authUser.role !== "EMPLOYEE" ? (
               <Navigate to="/hr-choice" />
             ) : (
               <Navigate to="/dashboard" />

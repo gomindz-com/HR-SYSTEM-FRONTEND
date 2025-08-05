@@ -270,8 +270,10 @@ const EmployeePortal = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
-                  {authUser?.role === "HR" ? "HR Portal" : "Employee Portal"}
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold capitalize text-foreground truncate">
+                  {authUser?.role === "EMPLOYEE"
+                    ? "Employee Portal"
+                    : `${authUser?.role.toLocaleLowerCase()} Portal`}
                 </h1>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
                   {authUser?.name} • {authUser?.position}
@@ -387,8 +389,8 @@ const EmployeePortal = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 pt-2 sm:pt-0 sm:border-l sm:border-border sm:pl-3">
-                {/* HR Dashboard Button - Only visible to HR */}
-                {authUser?.role === "HR" && (
+                {/* Management Dashboard Button - Only visible to non-EMPLOYEE users */}
+                {authUser?.role !== "EMPLOYEE" && (
                   <Button
                     variant="outline"
                     className="flex items-center justify-center text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
@@ -397,7 +399,7 @@ const EmployeePortal = () => {
                   >
                     <Building className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     <span className="hidden sm:inline">Dashboard</span>
-                    <span className="sm:hidden">HR</span>
+                    <span className="sm:hidden">{authUser?.role}</span>
                   </Button>
                 )}
                 <Button

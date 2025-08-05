@@ -163,7 +163,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* HR Portal Navigation - Only for HR users */}
-        {authUser?.role === "HR" && (
+        {authUser?.role !== "EMPLOYEE" && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2">
               {!collapsed && "HR Tools"}
