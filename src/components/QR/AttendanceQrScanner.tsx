@@ -22,6 +22,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [scannerInitialized, setScannerInitialized] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [permissionRetryCount, setPermissionRetryCount] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const initAttemptedRef = useRef(false);
@@ -101,10 +102,11 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
     // Remove console.log for ignored errors to prevent spam
   }, []);
 
-  useEffect(() => {
-    async function checkCamera() {
-      console.log("🔍 Checking camera support...");
-      setDebugInfo("Checking camera support...");
+  // Improved camera permission check with retry mechanism
+  const checkCameraPermission = useCallback(
+    async (retryCount = 0): Promise<boolean> => {
+      console.log(`🔍 Checking camera support... (attempt ${retryCount + 1})`);
+      setDebugInfo(`Checking camera support... (attempt ${retryCount + 1})`);
 
       if (
         typeof navigator !== "undefined" &&
@@ -129,6 +131,7 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
 
           // Stop the test stream
           stream.getTracks().forEach((track) => track.stop());
+          return true;
         } catch (err) {
           console.error("❌ Camera access denied:", err);
           setDebugInfo(
@@ -136,16 +139,63 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
               err instanceof Error ? err.message : "Unknown error"
             }`
           );
+
+          // Retry logic for permission issues
+          if (
+            retryCount < 2 &&
+            err instanceof Error &&
+            (err.name === "NotAllowedError" ||
+              err.name === "PermissionDeniedError")
+          ) {
+            console.log(
+              `🔄 Retrying camera permission... (${retryCount + 1}/2)`
+            );
+            setDebugInfo(`Retrying camera permission... (${retryCount + 1}/2)`);
+
+            // Wait a bit before retry
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return checkCameraPermission(retryCount + 1);
+          }
+
           setHasCameraSupport(false);
+          return false;
         }
       } else {
         console.error("❌ MediaDevices API not available");
         setDebugInfo("MediaDevices API not available");
         setHasCameraSupport(false);
+        return false;
       }
+    },
+    []
+  );
+
+  useEffect(() => {
+    async function initializeCamera() {
+      setCameraChecked(false);
+      setPermissionRetryCount(0);
+      const hasPermission = await checkCameraPermission();
       setCameraChecked(true);
+      return hasPermission;
     }
-    checkCamera();
+    initializeCamera();
+  }, [checkCameraPermission]);
+
+  // Cleanup function to properly release camera resources
+  const cleanupScanner = useCallback(async () => {
+    if (scannerRef.current) {
+      try {
+        console.log("🧹 Cleaning up scanner...");
+        await scannerRef.current.stop();
+        console.log("✅ Scanner stopped successfully");
+      } catch (err) {
+        console.warn("Error stopping scanner:", err);
+      } finally {
+        scannerRef.current = null;
+        setScannerInitialized(false);
+        initAttemptedRef.current = false;
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -220,19 +270,35 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
 
     // Cleanup function
     return () => {
-      if (scannerRef.current) {
-        try {
-          console.log("🧹 Cleaning up scanner...");
-          scannerRef.current.stop();
-        } catch (err) {
-          console.warn("Error stopping scanner:", err);
-        }
-        scannerRef.current = null;
-        setScannerInitialized(false);
-        initAttemptedRef.current = false;
-      }
+      cleanupScanner();
     };
-  }, [hasCameraSupport, cameraChecked, handleScanSuccess, handleScanError]);
+  }, [
+    hasCameraSupport,
+    cameraChecked,
+    handleScanSuccess,
+    handleScanError,
+    cleanupScanner,
+  ]);
+
+  // Add retry button functionality
+  const handleRetryCamera = async () => {
+    setError(null);
+    setCameraChecked(false);
+    setScannerInitialized(false);
+    initAttemptedRef.current = false;
+
+    // Clean up existing scanner
+    await cleanupScanner();
+
+    // Re-check camera permissions
+    const hasPermission = await checkCameraPermission();
+    setCameraChecked(true);
+
+    if (hasPermission) {
+      // Force re-initialization
+      initAttemptedRef.current = false;
+    }
+  };
 
   return (
     <div className="flex flex-col items-center text-center space-y-4">
@@ -243,8 +309,14 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
       {!cameraChecked ? (
         <p className="text-gray-500">📷 Initializing camera...</p>
       ) : !hasCameraSupport ? (
-        <div className="text-red-600">
+        <div className="text-red-600 space-y-2">
           <p>❌ Camera not supported. Use a modern browser and allow access.</p>
+          <button
+            onClick={handleRetryCamera}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            🔄 Retry Camera Access
+          </button>
         </div>
       ) : (
         <div className="relative w-[300px] h-[300px] rounded-2xl overflow-hidden shadow-lg border-4 border-black">
@@ -272,8 +344,14 @@ export const AttendanceQrScanner: React.FC<AttendanceQrScannerProps> = ({
 
       {result && <p className="text-green-600">{result}</p>}
       {error && (
-        <div className="text-red-600">
+        <div className="text-red-600 space-y-2">
           <p>{error}</p>
+          <button
+            onClick={handleRetryCamera}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            🔄 Retry Camera Access
+          </button>
         </div>
       )}
 

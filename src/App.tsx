@@ -70,7 +70,6 @@ function AppLayout({ children }) {
   );
 }
 
-// ...existing imports...
 
 function App() {
   const { checkAuth, checkingAuth, authUser } = useAuthStore();

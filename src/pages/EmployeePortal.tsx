@@ -57,6 +57,7 @@ const EmployeePortal = () => {
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [leaveRequestOpen, setLeaveRequestOpen] = useState(false);
+  const [scannerKey, setScannerKey] = useState(0);
 
   // Update time every second
   React.useEffect(() => {
@@ -69,11 +70,15 @@ const EmployeePortal = () => {
   const handleCheckIn = () => {
     setIsCheckedIn(true);
     setCheckInOpen(false);
+    // Force re-initialization of scanner for next use
+    setScannerKey((prev) => prev + 1);
   };
 
   const handleCheckOut = () => {
     setIsCheckedIn(false);
     setCheckOutOpen(false);
+    // Force re-initialization of scanner for next use
+    setScannerKey((prev) => prev + 1);
   };
 
   const handleLeaveRequest = () => {
@@ -315,7 +320,7 @@ const EmployeePortal = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
                 <AttendanceQrScanner
-                  key={checkInOpen ? "check-in-open" : "check-in-closed"}
+                  key={`check-in-${scannerKey}`}
                   mode="check-in"
                   onSuccess={handleCheckIn}
                 />
@@ -335,7 +340,7 @@ const EmployeePortal = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
                 <AttendanceQrScanner
-                  key={checkOutOpen ? "check-out-open" : "check-out-closed"}
+                  key={`check-out-${scannerKey}`}
                   mode="check-out"
                   onSuccess={handleCheckOut}
                 />
