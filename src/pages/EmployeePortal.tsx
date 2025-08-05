@@ -39,6 +39,7 @@ import {
   Building,
   LogOut,
   Menu,
+  Timer,
 } from "lucide-react";
 import { AttendanceQrScanner } from "@/components/QR/AttendanceQrScanner";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -296,20 +297,23 @@ const EmployeePortal = () => {
           </div>
 
           {/* Second Row - Time Display */}
-          <div className="flex justify-center mb-3 sm:mb-4">
-            <div className="text-center bg-muted/50 rounded-lg px-3 py-2 sm:px-4 sm:py-3">
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
-                Current Time
-              </p>
-              <p className="text-base sm:text-lg md:text-xl font-semibold text-foreground">
+          <div className="flex md:hidden justify-center mb-3 sm:mb-4">
+            <div className="text-center bg-gray-400/35 rounded-lg px-2 py-1 sm:px-3 sm:py-2">
+              
+              <p className="text-base flex sm:text-lg items-center justify-center md:text-xl font-semibold text-foreground">
+                <Timer className="w-4 text-white h-4 sm:w-5 sm:h-5 mr-3"/>
                 {currentTime}
               </p>
             </div>
           </div>
 
+
           {/* Third Row - Check In/Out Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:pt-16">
+
+
             {/* Check In Dialog */}
+
             <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -317,7 +321,7 @@ const EmployeePortal = () => {
                   className="bg-green-600 hover:bg-green-700 text-white h-10 sm:h-11 text-sm sm:text-base font-medium"
                 >
                   <Clock className="mr-2 h-4 w-4" />
-                  Check In
+                  Clock In
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
@@ -337,7 +341,7 @@ const EmployeePortal = () => {
                   className="h-10 sm:h-11 text-sm sm:text-base font-medium"
                 >
                   <Clock className="mr-2 h-4 w-4" />
-                  Check Out
+                  Clock Out
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
@@ -348,6 +352,23 @@ const EmployeePortal = () => {
                 />
               </DialogContent>
             </Dialog>
+
+
+
+
+
+
+            {/* timer on large screen */}
+            <div className="flex max-md:hidden justify-end items-end mb-3 sm:mb-4">
+            <div className="text-center bg-gray-400/35 rounded-lg px-2 py-1 sm:px-3 sm:py-2">
+              
+              <p className="text-base flex sm:text-lg items-center justify-center md:text-xl font-semibold text-foreground">
+                <Timer className="w-4 text-white h-4 sm:w-5 sm:h-5 mr-3"/>
+                {currentTime}
+              </p>
+            </div>
+          </div>
+
           </div>
         </div>
 
