@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, Search, QrCode } from "lucide-react";
+import { Clock, Search, QrCode, Calendar, X } from "lucide-react";
 import { useAttendanceStore } from "../../store/useAttendanceStore";
 import {
   Select,
@@ -19,10 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const AttendancePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
   const { fetchAttendance, attendanceList } = useAttendanceStore();
 
@@ -31,9 +42,10 @@ const AttendancePage = () => {
       page: 1,
       pageSize: 50,
       status: statusFilter !== "ALL" ? statusFilter : undefined,
+      date: dateFilter ? format(dateFilter, "yyyy-MM-dd") : undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [statusFilter, dateFilter]);
 
   const filteredAttendance = useMemo(() => {
     if (!attendanceList) return [];
@@ -48,16 +60,16 @@ const AttendancePage = () => {
   }, [attendanceList, searchTerm]);
 
   // Stats — use filtered list if available
-  const onTimeCount = attendanceList.filter(
+  const onTimeCount = filteredAttendance.filter(
     (a: any) => a.status === "ON_TIME"
   ).length;
-  const absentCount = attendanceList.filter(
+  const absentCount = filteredAttendance.filter(
     (a: any) => a.status === "ABSENT"
   ).length;
-  const lateCount = attendanceList.filter(
+  const lateCount = filteredAttendance.filter(
     (a: any) => a.status === "LATE"
   ).length;
-  const totalCount = attendanceList.length;
+  const totalCount = filteredAttendance.length;
   const attendanceRate =
     totalCount > 0
       ? Math.round(((onTimeCount + lateCount) / totalCount) * 1000) / 10
@@ -73,6 +85,19 @@ const AttendancePage = () => {
         return "bg-warning/10 text-warning";
       default:
         return "bg-muted/10 text-muted-foreground";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "ON_TIME":
+        return "On Time";
+      case "ABSENT":
+        return "Absent";
+      case "LATE":
+        return "Late";
+      default:
+        return status;
     }
   };
 
@@ -123,7 +148,7 @@ const AttendancePage = () => {
         <Card className="bg-gradient-card shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Late Arrivals
+              Late
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -140,7 +165,11 @@ const AttendancePage = () => {
             <div className="text-2xl font-bold text-primary">
               {attendanceRate}%
             </div>
-            <p className="text-xs text-muted-foreground">All Records</p>
+            <p className="text-xs text-muted-foreground">
+              {dateFilter || statusFilter !== "ALL"
+                ? "Filtered Records"
+                : "All Records"}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -168,7 +197,51 @@ const AttendancePage = () => {
               <SelectItem value="LATE">Late</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Date Filter */}
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[200px] justify-start text-left font-normal",
+                    !dateFilter && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFilter ? format(dateFilter, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateFilter}
+                  onSelect={setDateFilter}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {dateFilter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDateFilter(undefined)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
+        {(dateFilter || statusFilter !== "ALL") && (
+          <div className="text-sm text-muted-foreground">
+            Filters:{" "}
+            {statusFilter !== "ALL" && `${getStatusLabel(statusFilter)}`}
+            {dateFilter && statusFilter !== "ALL" && " • "}
+            {dateFilter && `${format(dateFilter, "MMM dd, yyyy")}`}
+          </div>
+        )}
       </div>
 
       {/* Attendance Table */}
@@ -247,7 +320,7 @@ const AttendancePage = () => {
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(record.status)}>
-                        {record.status}
+                        {getStatusLabel(record.status)}
                       </Badge>
                     </TableCell>
                   </TableRow>

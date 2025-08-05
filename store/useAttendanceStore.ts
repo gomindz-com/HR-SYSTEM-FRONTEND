@@ -18,6 +18,13 @@ interface Attendance {
   };
 }
 
+interface pagination {
+  page: number;
+  limit: number;
+  totalPages: number;
+  total: number;
+}
+
 interface AttendancePagination {
   attendance: Attendance[];
   page: number;
@@ -35,6 +42,7 @@ interface AttendanceStore {
     pageSize?: number;
     employeeId?: string;
     status?: string;
+    date?: string;
   }) => Promise<void>;
   attendanceList: Attendance[];
   attendancePagination: AttendancePagination | null;
@@ -60,6 +68,15 @@ interface AttendanceStore {
     attendancePercentage: number;
     daysOnTime: number;
   };
+
+  fetchSpecificEmployeeAttendance: (params?: {
+    page?: number;
+    limit?: number;
+    employeeId?: string;
+  }) => Promise<void>;
+  fetchingSpecificEmployeeAttendance: boolean;
+  specificEmployeeAttendanceList: Attendance[];
+  specificEmployeeAttendancePagination: pagination | null;
 }
 
 export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
@@ -153,6 +170,42 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
       console.log("Error fetching my attendance", error);
     } finally {
       set({ fetchingMine: false });
+    }
+  },
+  fetchingSpecificEmployeeAttendance: false,
+  specificEmployeeAttendanceList: [],
+  specificEmployeeAttendancePagination: {
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    total: 0,
+  },
+
+  fetchSpecificEmployeeAttendance: async (
+    params = { page: 1, limit: 10, employeeId: "" }
+  ) => {
+    set({ fetchingSpecificEmployeeAttendance: true });
+    try {
+      const response = await axiosInstance.get(
+        `/attendance/employee/${params.employeeId}`,
+        {
+          params,
+        }
+      );
+      const { attendance, page, limit, totalPages, total } = response.data.data;
+      set({
+        specificEmployeeAttendanceList: attendance,
+        specificEmployeeAttendancePagination: {
+          page,
+          limit,
+          totalPages,
+          total,
+        },
+      });
+    } catch (error) {
+      console.log("Error fetching specific employee attendance", error);
+    } finally {
+      set({ fetchingSpecificEmployeeAttendance: false });
     }
   },
 }));

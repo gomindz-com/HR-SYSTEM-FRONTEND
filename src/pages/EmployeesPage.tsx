@@ -9,6 +9,7 @@ import {
   MapPin,
   ChevronsUpDown,
   Check,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useEmployeeStore } from "../../store/useEmployeeStore";
+import { useAttendanceStore } from "../../store/useAttendanceStore";
 import {
   Form,
   FormControl,
@@ -116,6 +118,10 @@ export default function EmployeesPage() {
     useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [loadingEmployeeDetails, setLoadingEmployeeDetails] = useState(false);
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [selectedEmployeeForAttendance, setSelectedEmployeeForAttendance] =
+    useState(null);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
 
   // Auth store for departments and invite logic
   const {
@@ -130,9 +136,35 @@ export default function EmployeesPage() {
   const { employeeList, employeePagination, fetchEmployees } =
     useEmployeeStore();
 
+  // Attendance store for specific employee attendance
+  const {
+    fetchSpecificEmployeeAttendance,
+    specificEmployeeAttendanceList,
+    specificEmployeeAttendancePagination,
+    fetchingSpecificEmployeeAttendance,
+  } = useAttendanceStore();
+
   useEffect(() => {
     fetchDepartments();
   }, [fetchDepartments]);
+
+  // Debug attendance data
+  useEffect(() => {
+    if (attendanceModalOpen && selectedEmployeeForAttendance) {
+      console.log("Modal debug:", {
+        selectedEmployeeForAttendance,
+        specificEmployeeAttendanceList,
+        specificEmployeeAttendancePagination,
+        loadingAttendance,
+      });
+    }
+  }, [
+    attendanceModalOpen,
+    selectedEmployeeForAttendance,
+    specificEmployeeAttendanceList,
+    specificEmployeeAttendancePagination,
+    loadingAttendance,
+  ]);
 
   // Fetch employees when filters/search change
   useEffect(() => {
@@ -184,6 +216,34 @@ export default function EmployeesPage() {
       });
     } finally {
       setLoadingEmployeeDetails(false);
+    }
+  };
+
+  const handleViewAttendance = async (employee) => {
+    setSelectedEmployeeForAttendance(employee);
+    setAttendanceModalOpen(true);
+    setLoadingAttendance(true);
+
+    try {
+      await fetchSpecificEmployeeAttendance({
+        employeeId: employee.id,
+        page: 1,
+        limit: 20,
+      });
+      console.log("Attendance data loaded:", {
+        employee,
+        attendanceList: specificEmployeeAttendanceList,
+        pagination: specificEmployeeAttendancePagination,
+      });
+    } catch (error) {
+      console.error("Error fetching employee attendance:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load attendance records",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingAttendance(false);
     }
   };
 
@@ -316,7 +376,11 @@ export default function EmployeesPage() {
                     >
                       View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem>View Attendance</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleViewAttendance(employee)}
+                    >
+                      View Attendance
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Performance History</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -881,6 +945,195 @@ export default function EmployeesPage() {
                 <p className="text-sm text-muted-foreground">
                   No recent attendance records
                 </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No employee data available</p>
+          </div>
+        )}
+      </CustomModal>
+
+      {/* Employee Attendance Modal */}
+      <CustomModal
+        open={attendanceModalOpen}
+        onClose={() => setAttendanceModalOpen(false)}
+        className="min-w-[800px] max-w-[1200px] max-h-[90vh] overflow-y-auto"
+      >
+        {loadingAttendance ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-2 text-muted-foreground">
+              Loading attendance records...
+            </span>
+          </div>
+        ) : selectedEmployeeForAttendance ? (
+          <div className="w-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
+                  {selectedEmployeeForAttendance.profilePic ? (
+                    <img
+                      src={selectedEmployeeForAttendance.profilePic}
+                      alt={selectedEmployeeForAttendance.name}
+                      className="w-10 h-10 object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-white font-semibold text-sm">
+                      {selectedEmployeeForAttendance.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    Attendance Records
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEmployeeForAttendance.name} -{" "}
+                    {selectedEmployeeForAttendance.position}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendance Records */}
+            <div className="space-y-4">
+              {specificEmployeeAttendanceList &&
+              specificEmployeeAttendanceList.length > 0 ? (
+                <div className="space-y-3">
+                  {specificEmployeeAttendanceList.map((attendance) => (
+                    <div
+                      key={attendance.id}
+                      className="p-4 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm font-medium text-foreground">
+                            {new Date(attendance.date).toLocaleDateString([], {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </div>
+                          <Badge
+                            variant={
+                              attendance.status === "ON_TIME"
+                                ? "secondary"
+                                : attendance.status === "LATE"
+                                ? "outline"
+                                : attendance.status === "ABSENT"
+                                ? "destructive"
+                                : "secondary"
+                            }
+                          >
+                            {attendance.status === "ON_TIME"
+                              ? "On Time"
+                              : attendance.status === "LATE"
+                              ? "Late"
+                              : attendance.status === "ABSENT"
+                              ? "Absent"
+                              : attendance.status}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-1">
+                          <div className="text-muted-foreground">Check In</div>
+                          <div className="font-medium">
+                            {attendance.timeIn
+                              ? new Date(attendance.timeIn).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )
+                              : "Not checked in"}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-muted-foreground">Check Out</div>
+                          <div className="font-medium">
+                            {attendance.timeOut
+                              ? new Date(attendance.timeOut).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )
+                              : "Not checked out"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    No attendance records
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    No attendance records found for this employee.
+                  </p>
+                </div>
+              )}
+
+              {/* Pagination Info */}
+              {specificEmployeeAttendancePagination && (
+                <div className="flex justify-between items-center pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {specificEmployeeAttendanceList.length} of{" "}
+                    {specificEmployeeAttendancePagination.total || 0} records
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={specificEmployeeAttendancePagination.page <= 1}
+                      onClick={() => {
+                        fetchSpecificEmployeeAttendance({
+                          employeeId: selectedEmployeeForAttendance.id,
+                          page: specificEmployeeAttendancePagination.page - 1,
+                          limit: 20,
+                        });
+                      }}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={
+                        specificEmployeeAttendancePagination.page >=
+                          specificEmployeeAttendancePagination.totalPages ||
+                        specificEmployeeAttendancePagination.totalPages <= 1
+                      }
+                      onClick={() => {
+                        fetchSpecificEmployeeAttendance({
+                          employeeId: selectedEmployeeForAttendance.id,
+                          page: specificEmployeeAttendancePagination.page + 1,
+                          limit: 20,
+                        });
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
