@@ -316,7 +316,6 @@ export default function EmployeesPage() {
                     >
                       View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit Employee</DropdownMenuItem>
                     <DropdownMenuItem>View Attendance</DropdownMenuItem>
                     <DropdownMenuItem>Performance History</DropdownMenuItem>
                   </DropdownMenuContent>
