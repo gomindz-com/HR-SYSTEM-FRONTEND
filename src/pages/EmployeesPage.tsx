@@ -64,7 +64,7 @@ const statuses = ["All Statuses", "ACTIVE", "ON_LEAVE", "INACTIVE"];
 
 const inviteFormSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["EMPLOYEE", "DIRECTOR", "HR"]),
+  role: z.enum(["EMPLOYEE", "DIRECTOR", "HR", "CTO", "CEO", "MANAGEMENT"]),
   position: z.string().min(1, "Position is required"),
   departmentId: z.number({ required_error: "Department is required" }),
 });
@@ -122,6 +122,7 @@ export default function EmployeesPage() {
   const [selectedEmployeeForAttendance, setSelectedEmployeeForAttendance] =
     useState(null);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Auth store for departments and invite logic
   const {
@@ -133,7 +134,7 @@ export default function EmployeesPage() {
   } = useAuthStore();
 
   // Employee store (dynamic, from backend)
-  const { employeeList, employeePagination, fetchEmployees } =
+  const { employeeList, employeePagination, loading, fetchEmployees } =
     useEmployeeStore();
 
   // Attendance store for specific employee attendance
@@ -166,14 +167,24 @@ export default function EmployeesPage() {
     loadingAttendance,
   ]);
 
-  // Fetch employees when filters/search change
+  // Fetch employees when filters/search change with debounce
   useEffect(() => {
-    fetchEmployees({
-      page: 1,
-      pageSize: 30,
-      name: searchQuery || undefined,
-      status: selectedStatus !== "All Statuses" ? selectedStatus : undefined,
-    });
+    if (searchQuery) {
+      setIsSearching(true);
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchEmployees({
+        page: 1,
+        pageSize: 30,
+        search: searchQuery || undefined,
+        status: selectedStatus !== "All Statuses" ? selectedStatus : undefined,
+      }).finally(() => {
+        setIsSearching(false);
+      });
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedStatus]);
 
@@ -327,132 +338,186 @@ export default function EmployeesPage() {
       </Card>
 
       {/* Employee Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {employeeList.map((employee) => (
-          <Card
-            key={employee.id}
-            className="shadow-card hover:shadow-dropdown transition-all duration-200 bg-gradient-card"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center overflow-hidden">
-                    {employee.profilePic ? (
-                      <img
-                        src={employee.profilePic}
-                        alt={employee.name}
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
-                    ) : (
-                      <span className="text-white font-semibold text-sm">
-                        {employee.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)}
+      {loading || isSearching ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <Card
+              key={index}
+              className="shadow-card bg-gradient-card animate-pulse"
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-muted rounded-full"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded w-24"></div>
+                      <div className="h-3 bg-muted rounded w-20"></div>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 bg-muted rounded"></div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 bg-muted rounded w-16"></div>
+                    <div className="h-3 bg-muted rounded w-20"></div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-muted rounded"></div>
+                      <div className="h-3 bg-muted rounded w-32"></div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-muted rounded"></div>
+                      <div className="h-3 bg-muted rounded w-24"></div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-muted rounded"></div>
+                      <div className="h-3 bg-muted rounded w-28"></div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-border">
+                    <div className="h-3 bg-muted rounded w-20"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {employeeList.map((employee) => (
+              <Card
+                key={employee.id}
+                className="shadow-card hover:shadow-dropdown transition-all duration-200 bg-gradient-card"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center overflow-hidden">
+                        {employee.profilePic ? (
+                          <img
+                            src={employee.profilePic}
+                            alt={employee.name}
+                            className="w-12 h-12 object-cover rounded-full"
+                          />
+                        ) : (
+                          <span className="text-white font-semibold text-sm">
+                            {employee.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">
+                          {employee.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {employee.position}
+                        </p>
+                      </div>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleViewEmployeeDetails(employee)}
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleViewAttendance(employee)}
+                        >
+                          View Attendance
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Performance History</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          getStatusVariant(employee.status) as
+                            | "default"
+                            | "outline"
+                            | "destructive"
+                            | "secondary"
+                        }
+                      >
+                        {employee.status === "ACTIVE"
+                          ? "Active"
+                          : employee.status === "ON_LEAVE"
+                          ? "On Leave"
+                          : employee.status === "INACTIVE"
+                          ? "Inactive"
+                          : employee.status}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {employee.department?.name}
                       </span>
-                    )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="w-4 h-4" />
+                        <span className="truncate">{employee.email}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span>{employee.phone}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>{employee?.address}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-xs text-muted-foreground">
+                        Started:{" "}
+                        {employee.createdAt
+                          ? new Date(employee.createdAt).toLocaleDateString()
+                          : "-"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">
-                      {employee.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {employee.position}
-                    </p>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleViewEmployeeDetails(employee)}
-                    >
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleViewAttendance(employee)}
-                    >
-                      View Attendance
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>Performance History</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={
-                      getStatusVariant(employee.status) as
-                        | "default"
-                        | "outline"
-                        | "destructive"
-                        | "secondary"
-                    }
-                  >
-                    {employee.status === "ACTIVE"
-                      ? "Active"
-                      : employee.status === "ON_LEAVE"
-                      ? "On Leave"
-                      : employee.status === "INACTIVE"
-                      ? "Inactive"
-                      : employee.status}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    {employee.department?.name}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{employee.email}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                    <span>{employee.phone}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{employee?.address}</span>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground">
-                    Started:{" "}
-                    {employee.createdAt
-                      ? new Date(employee.createdAt).toLocaleDateString()
-                      : "-"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {employeeList.length === 0 && (
-        <Card className="shadow-card">
-          <CardContent className="p-12 text-center">
-            <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              No employees found
-            </h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search criteria or filters
-            </p>
-          </CardContent>
-        </Card>
+          {employeeList.length === 0 && (
+            <Card className="shadow-card">
+              <CardContent className="p-12 text-center">
+                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  No employees found
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search criteria or filters
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       {/* Custom Invite Modal */}
@@ -520,6 +585,9 @@ export default function EmployeesPage() {
                         <SelectItem value="EMPLOYEE">Employee</SelectItem>
                         <SelectItem value="DIRECTOR">Director</SelectItem>
                         <SelectItem value="HR">HR</SelectItem>
+                        <SelectItem value="CTO">CTO</SelectItem>
+                        <SelectItem value="CEO">CEO</SelectItem>
+                        <SelectItem value="MANAGEMENT">Management</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>

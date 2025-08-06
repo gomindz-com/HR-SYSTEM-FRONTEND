@@ -30,11 +30,14 @@ interface EmployeePagination {
 interface EmployeeStore {
   employeeList: Employee[];
   employeePagination: EmployeePagination | null;
+  loading: boolean;
   fetchEmployees: (params?: {
     page?: number;
     pageSize?: number;
     name?: string;
     email?: string;
+    position?: string;
+    search?: string;
     departmentId?: number;
     status?: string;
     role?: string;
@@ -44,16 +47,21 @@ interface EmployeeStore {
 export const useEmployeeStore = create<EmployeeStore>((set) => ({
   employeeList: [],
   employeePagination: null,
+  loading: false,
   fetchEmployees: async (params = {}) => {
+    set({ loading: true });
     try {
       const response = await axiosInstance.get("/employee", { params });
-      const { employees, page, pageSize, total, totalPages } = response.data.data;
+      const { employees, page, pageSize, total, totalPages } =
+        response.data.data;
       set({
         employeeList: employees,
         employeePagination: { employees, page, pageSize, total, totalPages },
+        loading: false,
       });
     } catch (error) {
       console.log("Error fetching employee list", error);
+      set({ loading: false });
     }
   },
 }));
