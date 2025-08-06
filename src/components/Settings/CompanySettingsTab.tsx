@@ -23,9 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Clock, AlertCircle, CheckCircle, Info } from "lucide-react";
+import { Clock, CheckCircle, Info } from "lucide-react";
+import { RiBuilding2Line } from "react-icons/ri";
 import { useCompanyStore } from "../../../store/useCompanyStore";
 import { useAuthStore } from "../../../store/useAuthStore";
+import CompanyInfoModal from "./CompanyInfoModal";
 
 // Zod schema for form validation
 const companySettingsSchema = z
@@ -106,6 +108,8 @@ export default function CompanySettingsTab() {
   } = useCompanyStore();
   const { authUser } = useAuthStore();
 
+  const [isCompanyInfoModalOpen, setIsCompanyInfoModalOpen] = useState(false);
+
   const form = useForm<CompanySettingsFormData>({
     resolver: zodResolver(companySettingsSchema),
     defaultValues: {
@@ -141,13 +145,6 @@ export default function CompanySettingsTab() {
     }
   };
 
-  // Check if user has permission to edit company settings
-  const canEditSettings =
-    authUser?.role === "HR" ||
-    authUser?.role === "CEO" ||
-    authUser?.role === "CTO" ||
-    authUser?.role === "DIRECTOR";
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -171,14 +168,15 @@ export default function CompanySettingsTab() {
             Configure attendance rules and timezone settings
           </p>
         </div>
-        {!canEditSettings && (
-          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">
-              Only HR and management can edit these settings
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setIsCompanyInfoModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <RiBuilding2Line className="h-4 w-4 mr-2" />
+            Update Company Info
+          </Button>
+        </div>
       </div>
 
       {/* Current Settings Info */}
@@ -234,77 +232,75 @@ export default function CompanySettingsTab() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                 {/* Work Start Time */}
-                 <FormField
-                   control={form.control}
-                   name="workStartTime"
-                   render={({ field }) => (
-                     <FormItem>
-                       <FormLabel className="text-sm font-medium text-gray-700">
-                         Work Start Time
-                       </FormLabel>
-                       <Select
-                         onValueChange={field.onChange}
-                         value={field.value}
-                         disabled={!canEditSettings}
-                       >
-                         <FormControl>
-                           <SelectTrigger>
-                             <Clock className="mr-2 h-4 w-4" />
-                             <SelectValue placeholder="Select start time" />
-                           </SelectTrigger>
-                         </FormControl>
-                         <SelectContent>
-                           {timeSlots.map((time) => (
-                             <SelectItem key={time.value} value={time.value}>
-                               {time.display}
-                             </SelectItem>
-                           ))}
-                         </SelectContent>
-                       </Select>
-                       <FormDescription className="text-xs">
-                         Employees can check in from this time.
-                       </FormDescription>
-                       <FormMessage />
-                     </FormItem>
-                   )}
-                 />
+                {/* Work Start Time */}
+                <FormField
+                  control={form.control}
+                  name="workStartTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-700">
+                        Work Start Time
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <Clock className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Select start time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {timeSlots.map((time) => (
+                            <SelectItem key={time.value} value={time.value}>
+                              {time.display}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription className="text-xs">
+                        Employees can check in from this time.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                                 {/* Work End Time */}
-                 <FormField
-                   control={form.control}
-                   name="workEndTime"
-                   render={({ field }) => (
-                     <FormItem>
-                       <FormLabel className="text-sm font-medium text-gray-700">
-                         Work End Time
-                       </FormLabel>
-                       <Select
-                         onValueChange={field.onChange}
-                         value={field.value}
-                         disabled={!canEditSettings}
-                       >
-                         <FormControl>
-                           <SelectTrigger>
-                             <Clock className="mr-2 h-4 w-4" />
-                             <SelectValue placeholder="Select end time" />
-                           </SelectTrigger>
-                         </FormControl>
-                         <SelectContent>
-                           {timeSlots.map((time) => (
-                             <SelectItem key={time.value} value={time.value}>
-                               {time.display}
-                             </SelectItem>
-                           ))}
-                         </SelectContent>
-                       </Select>
-                       <FormDescription className="text-xs">
-                         Standard work day ends at this time.
-                       </FormDescription>
-                       <FormMessage />
-                     </FormItem>
-                   )}
-                 />
+                {/* Work End Time */}
+                <FormField
+                  control={form.control}
+                  name="workEndTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-700">
+                        Work End Time
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <Clock className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Select end time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {timeSlots.map((time) => (
+                            <SelectItem key={time.value} value={time.value}>
+                              {time.display}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription className="text-xs">
+                        Standard work day ends at this time.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Late Threshold */}
                 <FormField
@@ -337,7 +333,6 @@ export default function CompanySettingsTab() {
                               field.onChange(numValue);
                             }
                           }}
-                          disabled={!canEditSettings}
                           required
                         />
                       </FormControl>
@@ -380,7 +375,6 @@ export default function CompanySettingsTab() {
                               field.onChange(numValue);
                             }
                           }}
-                          disabled={!canEditSettings}
                           required
                         />
                       </FormControl>
@@ -396,25 +390,23 @@ export default function CompanySettingsTab() {
               <Separator />
 
               {/* Submit Button */}
-              {canEditSettings && (
-                <div className="flex justify-end space-x-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => form.reset()}
-                    disabled={isUpdating}
-                  >
-                    Reset
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isUpdating}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {isUpdating ? "Saving..." : "Save Settings"}
-                  </Button>
-                </div>
-              )}
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => form.reset()}
+                  disabled={isUpdating}
+                >
+                  Reset
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isUpdating ? "Saving..." : "Save Settings"}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
@@ -455,6 +447,12 @@ export default function CompanySettingsTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Company Info Modal */}
+      <CompanyInfoModal
+        isOpen={isCompanyInfoModalOpen}
+        onClose={() => setIsCompanyInfoModalOpen(false)}
+      />
     </div>
   );
 }

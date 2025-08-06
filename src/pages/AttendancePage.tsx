@@ -35,7 +35,13 @@ const AttendancePage = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
-  const { fetchAttendance, attendanceList } = useAttendanceStore();
+  const {
+    fetchAttendance,
+    attendanceList,
+    getAttendanceStats,
+    gettingStats,
+    attendanceStats,
+  } = useAttendanceStore();
 
   useEffect(() => {
     fetchAttendance({
@@ -44,6 +50,8 @@ const AttendancePage = () => {
       status: statusFilter !== "ALL" ? statusFilter : undefined,
       date: dateFilter ? format(dateFilter, "yyyy-MM-dd") : undefined,
     });
+    // Fetch stats from API
+    getAttendanceStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, dateFilter]);
 
@@ -59,21 +67,11 @@ const AttendancePage = () => {
     });
   }, [attendanceList, searchTerm]);
 
-  // Stats — use filtered list if available
-  const onTimeCount = filteredAttendance.filter(
-    (a: any) => a.status === "ON_TIME"
-  ).length;
-  const absentCount = filteredAttendance.filter(
-    (a: any) => a.status === "ABSENT"
-  ).length;
-  const lateCount = filteredAttendance.filter(
-    (a: any) => a.status === "LATE"
-  ).length;
-  const totalCount = filteredAttendance.length;
-  const attendanceRate =
-    totalCount > 0
-      ? Math.round(((onTimeCount + lateCount) / totalCount) * 1000) / 10
-      : 0;
+  // Stats — use API data for more accurate statistics
+  const onTimeCount = attendanceStats.daysOnTime || 0;
+  const absentCount = attendanceStats.daysAbsent || 0;
+  const lateCount = attendanceStats.daysLate || 0;
+  const attendanceRate = attendanceStats.attendancePercentage || 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -130,7 +128,13 @@ const AttendancePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{onTimeCount}</div>
+            <div className="text-2xl font-bold text-success">
+              {gettingStats ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-success mx-auto"></div>
+              ) : (
+                onTimeCount
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card shadow-card">
@@ -141,7 +145,11 @@ const AttendancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {absentCount}
+              {gettingStats ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-destructive mx-auto"></div>
+              ) : (
+                absentCount
+              )}
             </div>
           </CardContent>
         </Card>
@@ -152,7 +160,13 @@ const AttendancePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">{lateCount}</div>
+            <div className="text-2xl font-bold text-warning">
+              {gettingStats ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-warning mx-auto"></div>
+              ) : (
+                lateCount
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card shadow-card">
@@ -163,12 +177,14 @@ const AttendancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {attendanceRate}%
+              {gettingStats ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+              ) : (
+                `${attendanceRate}%`
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {dateFilter || statusFilter !== "ALL"
-                ? "Filtered Records"
-                : "All Records"}
+              {gettingStats ? "Loading..." : "Company-wide Stats"}
             </p>
           </CardContent>
         </Card>

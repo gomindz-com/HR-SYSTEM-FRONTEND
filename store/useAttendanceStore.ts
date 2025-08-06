@@ -103,6 +103,7 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     set({ gettingStats: true });
     try {
       const response = await axiosInstance.get("/attendance/stats");
+      console.log("Attendance stats response:", response.data.data);
       set({ attendanceStats: response.data.data });
     } catch (error) {
       console.log("Error in Get Attendance Stats", error);

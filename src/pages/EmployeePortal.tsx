@@ -299,19 +299,15 @@ const EmployeePortal = () => {
           {/* Second Row - Time Display */}
           <div className="flex md:hidden justify-center mb-3 sm:mb-4">
             <div className="text-center bg-gray-400/35 rounded-lg px-2 py-1 sm:px-3 sm:py-2">
-              
               <p className="text-base flex sm:text-lg items-center justify-center md:text-xl font-semibold text-foreground">
-                <Timer className="w-4 text-white h-4 sm:w-5 sm:h-5 mr-3"/>
+                <Timer className="w-4 text-white h-4 sm:w-5 sm:h-5 mr-3" />
                 {currentTime}
               </p>
             </div>
           </div>
 
-
           {/* Third Row - Check In/Out Buttons */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:pt-16">
-
-
             {/* Check In Dialog */}
 
             <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
@@ -353,22 +349,15 @@ const EmployeePortal = () => {
               </DialogContent>
             </Dialog>
 
-
-
-
-
-
             {/* timer on large screen */}
             <div className="flex max-md:hidden justify-end items-end mb-3 sm:mb-4">
-            <div className="text-center bg-gray-400/35 rounded-lg px-2 py-1 sm:px-3 sm:py-2">
-              
-              <p className="text-base flex sm:text-lg items-center justify-center md:text-xl font-semibold text-foreground">
-                <Timer className="w-4 text-white h-4 sm:w-5 sm:h-5 mr-3"/>
-                {currentTime}
-              </p>
+              <div className="text-center bg-gray-400/35 rounded-lg px-2 py-1 sm:px-3 sm:py-2">
+                <p className="text-base flex sm:text-lg items-center justify-center md:text-xl font-semibold text-foreground">
+                  <Timer className="w-4 text-white h-4 sm:w-5 sm:h-5 mr-3" />
+                  {currentTime}
+                </p>
+              </div>
             </div>
-          </div>
-
           </div>
         </div>
 
@@ -567,7 +556,11 @@ const EmployeePortal = () => {
               <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                 <div className="text-center p-2 sm:p-3 bg-blue-100 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-blue-600">
-                    {attendanceStats.attendancePercentage}%
+                    {gettingStats ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
+                    ) : (
+                      `${attendanceStats.attendancePercentage}%`
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Attendance Rate
@@ -575,19 +568,31 @@ const EmployeePortal = () => {
                 </div>
                 <div className="text-center p-2 sm:p-3 bg-green-100 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-green-600">
-                    {attendanceStats.daysOnTime}
+                    {gettingStats ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mx-auto"></div>
+                    ) : (
+                      attendanceStats.daysOnTime
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">On Time</p>
                 </div>
                 <div className="text-center p-2 sm:p-3 bg-red-100 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-red-600">
-                    {attendanceStats.daysAbsent}
+                    {gettingStats ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mx-auto"></div>
+                    ) : (
+                      attendanceStats.daysAbsent
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">Days Absent</p>
                 </div>
                 <div className="text-center p-2 sm:p-3 bg-yellow-100 rounded-lg">
                   <p className="text-sm sm:text-lg font-bold text-yellow-600">
-                    {attendanceStats.daysLate}
+                    {gettingStats ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mx-auto"></div>
+                    ) : (
+                      attendanceStats.daysLate
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">Late Days</p>
                 </div>
