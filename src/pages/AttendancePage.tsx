@@ -38,6 +38,7 @@ const AttendancePage = () => {
   const {
     fetchAttendance,
     attendanceList,
+    attendancePagination,
     getAttendanceStats,
     gettingStats,
     attendanceStats,
@@ -46,7 +47,7 @@ const AttendancePage = () => {
   useEffect(() => {
     fetchAttendance({
       page: 1,
-      pageSize: 50,
+      pageSize: 20,
       status: statusFilter !== "ALL" ? statusFilter : undefined,
       date: dateFilter ? format(dateFilter, "yyyy-MM-dd") : undefined,
     });
@@ -346,6 +347,55 @@ const AttendancePage = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {attendancePagination && attendancePagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6">
+          <p className="text-sm text-muted-foreground">
+            Page {attendancePagination.page} of{" "}
+            {attendancePagination.totalPages} • Showing {attendanceList.length}{" "}
+            of {attendancePagination.total} records
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={attendancePagination.page <= 1}
+              onClick={() => {
+                fetchAttendance({
+                  page: attendancePagination.page - 1,
+                  pageSize: 20,
+                  status: statusFilter !== "ALL" ? statusFilter : undefined,
+                  date: dateFilter
+                    ? format(dateFilter, "yyyy-MM-dd")
+                    : undefined,
+                });
+              }}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={
+                attendancePagination.page >= attendancePagination.totalPages
+              }
+              onClick={() => {
+                fetchAttendance({
+                  page: attendancePagination.page + 1,
+                  pageSize: 20,
+                  status: statusFilter !== "ALL" ? statusFilter : undefined,
+                  date: dateFilter
+                    ? format(dateFilter, "yyyy-MM-dd")
+                    : undefined,
+                });
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -517,6 +517,56 @@ export default function EmployeesPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Pagination Controls */}
+          {employeePagination && employeePagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-sm text-muted-foreground">
+                Page {employeePagination.page} of{" "}
+                {employeePagination.totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={employeePagination.page <= 1}
+                  onClick={() => {
+                    fetchEmployees({
+                      page: employeePagination.page - 1,
+                      pageSize: 30,
+                      search: searchQuery || undefined,
+                      status:
+                        selectedStatus !== "All Statuses"
+                          ? selectedStatus
+                          : undefined,
+                    });
+                  }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    employeePagination.page >= employeePagination.totalPages
+                  }
+                  onClick={() => {
+                    fetchEmployees({
+                      page: employeePagination.page + 1,
+                      pageSize: 30,
+                      search: searchQuery || undefined,
+                      status:
+                        selectedStatus !== "All Statuses"
+                          ? selectedStatus
+                          : undefined,
+                    });
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
