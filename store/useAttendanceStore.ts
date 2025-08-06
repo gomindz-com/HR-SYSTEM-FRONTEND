@@ -61,6 +61,7 @@ interface AttendanceStore {
   fetchingMine: boolean;
 
   getAttendanceStats: () => Promise<void>;
+  getCompanyAttendanceStats: () => Promise<void>;
   gettingStats: boolean;
   attendanceStats: {
     daysLate: number;
@@ -103,10 +104,23 @@ export const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     set({ gettingStats: true });
     try {
       const response = await axiosInstance.get("/attendance/stats");
-      console.log("Attendance stats response:", response.data.data);
+      console.log("Individual attendance stats response:", response.data.data);
       set({ attendanceStats: response.data.data });
     } catch (error) {
-      console.log("Error in Get Attendance Stats", error);
+      console.log("Error in Get Individual Attendance Stats", error);
+    } finally {
+      set({ gettingStats: false });
+    }
+  },
+
+  getCompanyAttendanceStats: async () => {
+    set({ gettingStats: true });
+    try {
+      const response = await axiosInstance.get("/attendance/company-stats");
+      console.log("Company attendance stats response:", response.data.data);
+      set({ attendanceStats: response.data.data });
+    } catch (error) {
+      console.log("Error in Get Company Attendance Stats", error);
     } finally {
       set({ gettingStats: false });
     }

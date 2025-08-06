@@ -39,11 +39,12 @@ const AttendancePage = () => {
     fetchAttendance,
     attendanceList,
     attendancePagination,
-    getAttendanceStats,
+    getCompanyAttendanceStats,
     gettingStats,
     attendanceStats,
   } = useAttendanceStore();
 
+  // Initial load - fetch attendance data and stats
   useEffect(() => {
     fetchAttendance({
       page: 1,
@@ -51,8 +52,17 @@ const AttendancePage = () => {
       status: statusFilter !== "ALL" ? statusFilter : undefined,
       date: dateFilter ? format(dateFilter, "yyyy-MM-dd") : undefined,
     });
-    // Fetch stats from API
-    getAttendanceStats();
+    getCompanyAttendanceStats();
+  }, []); // Empty dependency array for initial load only
+
+  // Refetch when filters change
+  useEffect(() => {
+    fetchAttendance({
+      page: 1,
+      pageSize: 20,
+      status: statusFilter !== "ALL" ? statusFilter : undefined,
+      date: dateFilter ? format(dateFilter, "yyyy-MM-dd") : undefined,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, dateFilter]);
 
