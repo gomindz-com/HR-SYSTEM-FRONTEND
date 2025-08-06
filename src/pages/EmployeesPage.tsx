@@ -149,6 +149,11 @@ export default function EmployeesPage() {
     fetchDepartments();
   }, [fetchDepartments]);
 
+  // Debug departments
+  useEffect(() => {
+    console.log("Auth departments:", authDepartments);
+  }, [authDepartments]);
+
   // Debug attendance data
   useEffect(() => {
     if (attendanceModalOpen && selectedEmployeeForAttendance) {

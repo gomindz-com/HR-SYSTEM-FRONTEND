@@ -177,8 +177,10 @@ export const useAuthStore = create<AuthStore>()(
       fetchDepartments: async () => {
         try {
           const res = await axiosInstance.get("/department");
+          console.log("Departments response:", res.data);
           set({ departments: res.data.data });
         } catch (error) {
+          console.error("Error fetching departments:", error);
           toast.error(
             error.response?.data?.message || "Failed to fetch departments"
           );
