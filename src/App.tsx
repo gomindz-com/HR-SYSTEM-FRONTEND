@@ -71,7 +71,7 @@ function AppLayout({ children }) {
 }
 
 function App() {
-  const { checkAuth, checkingAuth, authUser } = useAuthStore();
+  const { checkAuth, checkingAuth, authUser, clearAuth } = useAuthStore();
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -81,6 +81,26 @@ function App() {
     };
     verifyAuth();
   }, [checkAuth]);
+
+  // Listen for auth errors from axios interceptor
+  useEffect(() => {
+    const handleAuthError = (event: CustomEvent) => {
+      console.log("Auth error event received:", event.detail);
+      clearAuth();
+      toast.error(
+        event.detail.message || "Session expired. Please log in again."
+      );
+    };
+
+    window.addEventListener("auth-error", handleAuthError as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "auth-error",
+        handleAuthError as EventListener
+      );
+    };
+  }, [clearAuth]);
 
   if (!authChecked || checkingAuth) {
     return (

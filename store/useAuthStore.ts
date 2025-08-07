@@ -7,6 +7,7 @@ import {
 } from "../src/lib/type.ts";
 import { axiosInstance } from "../src/lib/axios.ts";
 import { toast } from "react-hot-toast";
+
 interface AuthStore {
   companySignUp: (data: CompanyHRSignUpRequest) => Promise<boolean>;
   signingUp: boolean;
@@ -43,6 +44,7 @@ interface AuthStore {
   departments: Department[];
   fetchDepartments: () => Promise<void>;
   addDepartment: (name: string) => Promise<void>;
+  clearAuth: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -58,6 +60,11 @@ export const useAuthStore = create<AuthStore>()(
       acceptingInvitation: false,
       authUser: null,
       departments: [],
+
+      clearAuth: () => {
+        set({ authUser: null });
+        localStorage.removeItem("jwt_token");
+      },
 
       companySignUp: async (data) => {
         set({ signingUp: true });
@@ -119,6 +126,14 @@ export const useAuthStore = create<AuthStore>()(
       checkAuth: async () => {
         set({ checkingAuth: true });
         try {
+          // Check if token exists in localStorage
+          const token = localStorage.getItem("jwt_token");
+          if (!token) {
+            console.log("No token found, clearing auth state");
+            set({ authUser: null, checkingAuth: false });
+            return;
+          }
+
           console.log("Making checkAuth request...");
           const response = await axiosInstance.get("/auth/check-auth");
           console.log("checkAuth success:", response.data);
@@ -128,8 +143,17 @@ export const useAuthStore = create<AuthStore>()(
             "checkAuth error:",
             error.response?.data || error.message
           );
-          // If checkAuth fails, clear the token
+          // If checkAuth fails, clear the token and auth state
+          set({ authUser: null });
           localStorage.removeItem("jwt_token");
+
+          // Show toast for expired session
+          if (
+            error.response?.status === 401 ||
+            error.response?.status === 403
+          ) {
+            toast.error("Session expired. Please log in again.");
+          }
         } finally {
           set({ checkingAuth: false });
         }
