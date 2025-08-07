@@ -7,28 +7,28 @@ export type Employee = {
   phone?: string;
   attendance: {
     id: number;
-    checkInTime: string; 
-    checkOutTime: string; 
-    date: string; 
-  }
+    checkInTime: string;
+    checkOutTime: string;
+    date: string;
+  };
   profilePic?: string;
   position?: string;
   departmentId: number;
   department: {
     name: string;
-  }
+  };
   companyId: number;
   location?: string;
-  startDate: string; 
+  startDate: string;
   avatar?: string;
   role: "EMPLOYEE" | "DIRECTOR" | "HR";
-  dateOfBirth?: string; 
+  dateOfBirth?: string;
   address?: string;
   emergencyContact?: string;
   employmentType: "FULL_TIME" | "PART_TIME" | "CONTRACTOR";
   salary?: number;
-  lastLogin?: string; 
-  createdAt: string; 
+  lastLogin?: string;
+  createdAt: string;
 };
 
 export type Company = {
@@ -39,9 +39,9 @@ export type Company = {
   companyAddress: string;
   hrId: number;
   companyDescription: string;
+  timezone: string;
   createdAt: string;
 };
-
 
 export type CompanyHRSignUpRequest = {
   companyName: string;
@@ -49,6 +49,7 @@ export type CompanyHRSignUpRequest = {
   companyTin: string;
   companyAddress: string;
   companyDescription: string;
+  timezone: string;
   HRName: string;
   HRPhone: string;
   HRAddress: string;
@@ -57,7 +58,6 @@ export type CompanyHRSignUpRequest = {
   confirmHRPassword: string;
 };
 
-
 export type Department = {
   id: number;
   name: string;
@@ -65,4 +65,4 @@ export type Department = {
   companyId: number;
   createdAt: string;
   updatedAt: string;
-}
+};

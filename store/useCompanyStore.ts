@@ -18,6 +18,25 @@ interface CompanyInfo {
   companyTin: string;
   companyAddress: string;
   companyDescription: string;
+  timezone: string;
+}
+
+interface TimezoneOption {
+  value: string;
+  label: string;
+  offset: string;
+  currentTime: string;
+}
+
+interface GroupedTimezones {
+  Popular: TimezoneOption[];
+  Africa: TimezoneOption[];
+  America: TimezoneOption[];
+  Asia: TimezoneOption[];
+  Europe: TimezoneOption[];
+  Pacific: TimezoneOption[];
+  Australia: TimezoneOption[];
+  Other: TimezoneOption[];
 }
 
 interface CompanyStore {
@@ -26,7 +45,7 @@ interface CompanyStore {
   isLoading: boolean;
   isUpdating: boolean;
   isUpdatingInfo: boolean;
-  timezones: string[];
+  timezones: GroupedTimezones | null;
   isLoadingTimezones: boolean;
 
   // Actions
@@ -43,7 +62,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
   isLoading: false,
   isUpdating: false,
   isUpdatingInfo: false,
-  timezones: [],
+  timezones: null,
   isLoadingTimezones: false,
 
   fetchSettings: async () => {

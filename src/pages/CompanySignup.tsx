@@ -10,12 +10,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { axiosInstance } from "../lib/axios";
 
 const formSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
@@ -23,6 +34,7 @@ const formSchema = z.object({
   companyTin: z.string().min(1, "Company TIN is required"),
   companyAddress: z.string().min(1, "Company address is required"),
   companyDescription: z.string().min(1, "Description is required"),
+  timezone: z.string().min(1, "Timezone is required"),
   HRName: z.string().min(1, "HR name is required"),
   HRPhone: z.string().min(1, "HR phone is required"),
   HRAddress: z.string().min(1, "HR address is required"),
@@ -30,7 +42,29 @@ const formSchema = z.object({
   HRPassword: z.string().min(8, "Password must be at least 8 characters long"),
   confirmHRPassword: z.string().min(8, "Confirm password is required"),
 });
+
+interface TimezoneOption {
+  value: string;
+  label: string;
+  offset: string;
+  currentTime: string;
+}
+
+interface GroupedTimezones {
+  Popular: TimezoneOption[];
+  Africa: TimezoneOption[];
+  America: TimezoneOption[];
+  Asia: TimezoneOption[];
+  Europe: TimezoneOption[];
+  Pacific: TimezoneOption[];
+  Australia: TimezoneOption[];
+  Other: TimezoneOption[];
+}
+
 const CompanySignup = () => {
+  const [timezones, setTimezones] = useState<GroupedTimezones | null>(null);
+  const [loadingTimezones, setLoadingTimezones] = useState(true);
+
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
       companyName: "",
@@ -38,6 +72,7 @@ const CompanySignup = () => {
       companyTin: "",
       companyAddress: "",
       companyDescription: "",
+      timezone: "",
       HRName: "",
       HRPhone: "",
       HRAddress: "",
@@ -51,6 +86,22 @@ const CompanySignup = () => {
   const { companySignUp, signingUp } = useAuthStore();
   const navigate = useNavigate();
 
+  // Fetch timezones on component mount
+  useEffect(() => {
+    const fetchTimezones = async () => {
+      try {
+        const response = await axiosInstance.get("/company/timezones");
+        setTimezones(response.data.data);
+      } catch (error) {
+        console.error("Error fetching timezones:", error);
+      } finally {
+        setLoadingTimezones(false);
+      }
+    };
+
+    fetchTimezones();
+  }, []);
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const response = await companySignUp({
@@ -59,6 +110,7 @@ const CompanySignup = () => {
         companyTin: data.companyTin,
         companyAddress: data.companyAddress,
         companyDescription: data.companyDescription,
+        timezone: data.timezone,
         HRName: data.HRName,
         HRPhone: data.HRPhone,
         HRAddress: data.HRAddress,
@@ -204,6 +256,62 @@ const CompanySignup = () => {
                       )}
                     />
                   </div>
+                </div>
+
+                {/* Timezone Selection */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold text-foreground border-b pb-2">
+                    Timezone
+                  </h2>
+                  <FormField
+                    control={form.control}
+                    name="timezone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Select Timezone
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 text-base">
+                              <SelectValue placeholder="Select a timezone" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {loadingTimezones ? (
+                              <SelectItem value="" disabled>
+                                Loading timezones...
+                              </SelectItem>
+                            ) : timezones ? (
+                              Object.entries(timezones).map(
+                                ([group, options]) => (
+                                  <SelectGroup key={group}>
+                                    <SelectLabel>{group}</SelectLabel>
+                                    {options.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                                )
+                              )
+                            ) : (
+                              <SelectItem value="" disabled>
+                                No timezones found.
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* HR Information */}

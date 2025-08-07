@@ -22,6 +22,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from "@/components/ui/select";
 import { Mail, MapPin, FileText } from "lucide-react";
 import { RiBuilding2Line } from "react-icons/ri";
 import { useCompanyStore } from "../../../store/useCompanyStore";
@@ -46,6 +55,7 @@ const companyInfoSchema = z.object({
     .string()
     .max(500, "Description must be less than 500 characters")
     .optional(),
+  timezone: z.string().min(1, "Timezone is required"),
 });
 
 type CompanyInfoFormData = z.infer<typeof companyInfoSchema>;
@@ -59,8 +69,15 @@ export default function CompanyInfoModal({
   isOpen,
   onClose,
 }: CompanyInfoModalProps) {
-  const { companyInfo, isUpdatingInfo, fetchCompanyInfo, updateCompanyInfo } =
-    useCompanyStore();
+  const {
+    companyInfo,
+    isUpdatingInfo,
+    fetchCompanyInfo,
+    updateCompanyInfo,
+    timezones,
+    isLoadingTimezones,
+    fetchTimezones,
+  } = useCompanyStore();
   const { authUser } = useAuthStore();
 
   const form = useForm<CompanyInfoFormData>({
@@ -71,15 +88,21 @@ export default function CompanyInfoModal({
       companyTin: "",
       companyAddress: "",
       companyDescription: "",
+      timezone: "",
     },
   });
 
-  // Load company info when modal opens
+  // Load company info and timezones when modal opens
   useEffect(() => {
-    if (isOpen && !companyInfo) {
-      fetchCompanyInfo();
+    if (isOpen) {
+      if (!companyInfo) {
+        fetchCompanyInfo();
+      }
+      if (!timezones) {
+        fetchTimezones();
+      }
     }
-  }, [isOpen, companyInfo, fetchCompanyInfo]);
+  }, [isOpen, companyInfo, timezones, fetchCompanyInfo, fetchTimezones]);
 
   // Update form when company info is loaded
   useEffect(() => {
@@ -90,6 +113,7 @@ export default function CompanyInfoModal({
         companyTin: companyInfo.companyTin || "",
         companyAddress: companyInfo.companyAddress || "",
         companyDescription: companyInfo.companyDescription || "",
+        timezone: companyInfo.timezone || "",
       });
     }
   }, [companyInfo, form]);
@@ -239,6 +263,55 @@ export default function CompanyInfoModal({
                   <FormDescription className="text-xs">
                     Optional: Brief description of your company's business
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Timezone Selection */}
+            <FormField
+              control={form.control}
+              name="timezone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Timezone
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a timezone" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isLoadingTimezones ? (
+                        <SelectItem value="" disabled>
+                          Loading timezones...
+                        </SelectItem>
+                      ) : timezones ? (
+                        Object.entries(timezones).map(([group, options]) => (
+                          <SelectGroup key={group}>
+                            <SelectLabel>{group}</SelectLabel>
+                            {options.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No timezones found.
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
