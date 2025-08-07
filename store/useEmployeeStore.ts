@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../src/lib/axios.ts";
+import toast from "react-hot-toast";
 
 export interface Employee {
   id: number;
@@ -42,6 +43,9 @@ interface EmployeeStore {
     status?: string;
     role?: string;
   }) => Promise<void>;
+
+  updateEmployee: (id: string, data: any) => Promise<void>;
+  updatingEmployee: boolean;
 }
 
 export const useEmployeeStore = create<EmployeeStore>((set) => ({
@@ -62,6 +66,24 @@ export const useEmployeeStore = create<EmployeeStore>((set) => ({
     } catch (error) {
       console.log("Error fetching employee list", error);
       set({ loading: false });
+    }
+  },
+
+  updatingEmployee: false,
+  updateEmployee: async (id, data) => {
+    set({ updatingEmployee: true });
+    try {
+      const response = await axiosInstance.put(
+        `/employee/update-employee/${id}`,
+        data
+      );
+      toast.success(response.data.message || "Employee updated successfully");
+      set({ updatingEmployee: false });
+    } catch (error) {
+      console.log("Error updating employee", error);
+      toast.error(error.response.data.message || "Failed to update employee");
+    } finally {
+      set({ updatingEmployee: false });
     }
   },
 }));

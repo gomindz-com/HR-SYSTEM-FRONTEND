@@ -23,7 +23,7 @@ import NotFound from "./pages/NotFound";
 import CompanySignup from "./pages/CompanySignup";
 import { AppSidebar } from "./components/Layout/AppSidebar";
 import { Header } from "./components/Layout/Header";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";

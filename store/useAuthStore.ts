@@ -147,10 +147,25 @@ export const useAuthStore = create<AuthStore>()(
           set({ authUser: null });
           localStorage.removeItem("jwt_token");
 
-          // Show toast for expired session
+          // Only show toast for expired session if not on auth-related pages
+          // This prevents the toast from appearing when user is on unprotected pages
+          const currentPath = window.location.pathname;
+          const authPages = [
+            "/",
+            "/login",
+            "/company-signup",
+            "/forgot-password",
+            "/reset-password",
+            "/accept-invitation",
+          ];
+          const isOnAuthPage = authPages.some((page) =>
+            currentPath.startsWith(page)
+          );
+
           if (
-            error.response?.status === 401 ||
-            error.response?.status === 403
+            (error.response?.status === 401 ||
+              error.response?.status === 403) &&
+            !isOnAuthPage
           ) {
             toast.error("Session expired. Please log in again.");
           }

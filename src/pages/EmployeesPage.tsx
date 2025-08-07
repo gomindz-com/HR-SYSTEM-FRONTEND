@@ -69,6 +69,13 @@ const inviteFormSchema = z.object({
   departmentId: z.number({ required_error: "Department is required" }),
 });
 
+const updateEmployeeFormSchema = z.object({
+  role: z.enum(["EMPLOYEE", "DIRECTOR", "HR", "CTO", "CEO", "MANAGEMENT"]),
+  position: z.string().min(1, "Position is required"),
+  departmentId: z.number({ required_error: "Department is required" }),
+  status: z.enum(["ACTIVE", "ON_LEAVE", "INACTIVE"]),
+});
+
 const departmentFormSchema = z.object({
   name: z.string().min(1, "Department name is required"),
 });
@@ -123,6 +130,9 @@ export default function EmployeesPage() {
     useState(null);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [updateEmployeeModalOpen, setUpdateEmployeeModalOpen] = useState(false);
+  const [selectedEmployeeForUpdate, setSelectedEmployeeForUpdate] =
+    useState(null);
 
   // Auth store for departments and invite logic
   const {
@@ -134,8 +144,14 @@ export default function EmployeesPage() {
   } = useAuthStore();
 
   // Employee store (dynamic, from backend)
-  const { employeeList, employeePagination, loading, fetchEmployees } =
-    useEmployeeStore();
+  const {
+    employeeList,
+    employeePagination,
+    loading,
+    fetchEmployees,
+    updateEmployee,
+    updatingEmployee,
+  } = useEmployeeStore();
 
   // Attendance store for specific employee attendance
   const {
@@ -203,6 +219,16 @@ export default function EmployeesPage() {
     resolver: zodResolver(inviteFormSchema),
   });
 
+  const updateEmployeeForm = useForm<z.infer<typeof updateEmployeeFormSchema>>({
+    defaultValues: {
+      role: "EMPLOYEE",
+      position: "",
+      departmentId: undefined,
+      status: "ACTIVE",
+    },
+    resolver: zodResolver(updateEmployeeFormSchema),
+  });
+
   const { toast } = useToast();
 
   // Inline department add handler (no popover state)
@@ -261,6 +287,17 @@ export default function EmployeesPage() {
     } finally {
       setLoadingAttendance(false);
     }
+  };
+
+  const handleUpdateEmployee = (employee) => {
+    setSelectedEmployeeForUpdate(employee);
+    updateEmployeeForm.reset({
+      role: employee.role,
+      position: employee.position || "",
+      departmentId: employee.departmentId,
+      status: employee.status,
+    });
+    setUpdateEmployeeModalOpen(true);
   };
 
   const getStatusVariant = (status: string) => {
@@ -450,6 +487,11 @@ export default function EmployeesPage() {
                           View Attendance
                         </DropdownMenuItem>
                         <DropdownMenuItem>Performance History</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleUpdateEmployee(employee)}
+                        >
+                          Update Employee
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -786,6 +828,257 @@ export default function EmployeesPage() {
           >
             Cancel
           </Button>
+        </div>
+      </CustomModal>
+
+      {/* Update Employee Modal */}
+      <CustomModal
+        open={updateEmployeeModalOpen}
+        onClose={() => setUpdateEmployeeModalOpen(false)}
+        className="min-w-[600px] max-w-[800px]"
+      >
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              Update Employee
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              Update employee information and settings.
+            </p>
+          </div>
+
+          <Form {...updateEmployeeForm}>
+            <form
+              className="space-y-6"
+              onSubmit={updateEmployeeForm.handleSubmit(async (data) => {
+                try {
+                  await updateEmployee(
+                    selectedEmployeeForUpdate.id.toString(),
+                    {
+                      role: data.role,
+                      position: data.position,
+                      departmentId: data.departmentId,
+                      status: data.status,
+                    }
+                  );
+                  setUpdateEmployeeModalOpen(false);
+                  updateEmployeeForm.reset();
+                  // Refresh the employee list
+                  fetchEmployees({
+                    page: 1,
+                    pageSize: 30,
+                    search: searchQuery || undefined,
+                    status:
+                      selectedStatus !== "All Statuses"
+                        ? selectedStatus
+                        : undefined,
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to update employee.",
+                    variant: "destructive",
+                  });
+                }
+              })}
+            >
+              {/* First Row - Role and Position */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={updateEmployeeForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Role
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                            <SelectItem value="DIRECTOR">Director</SelectItem>
+                            <SelectItem value="HR">HR</SelectItem>
+                            <SelectItem value="CTO">CTO</SelectItem>
+                            <SelectItem value="CEO">CEO</SelectItem>
+                            <SelectItem value="MANAGEMENT">
+                              Management
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={updateEmployeeForm.control}
+                  name="position"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Position
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter position"
+                          className="h-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Status Field */}
+              <FormField
+                control={updateEmployeeForm.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">
+                      Status
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ACTIVE">Active</SelectItem>
+                          <SelectItem value="ON_LEAVE">On Leave</SelectItem>
+                          <SelectItem value="INACTIVE">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Department Field */}
+              <FormField
+                control={updateEmployeeForm.control}
+                name="departmentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">
+                      Department
+                    </FormLabel>
+                    <FormControl>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={`h-10 w-full justify-between ${
+                              !field.value
+                                ? "text-muted-foreground"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {field.value
+                              ? authDepartments.find(
+                                  (dep) => dep.id === field.value
+                                )?.name
+                              : "Select department"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0 w-[300px]">
+                          <Command>
+                            <div className="flex items-center border-b px-3">
+                              <CommandInput
+                                placeholder="Search department..."
+                                className="border-0 py-3 h-9"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                type="button"
+                                className="h-8 w-8 ml-1"
+                                onClick={() => setDepartmentModalOpen(true)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <CommandList>
+                              <CommandEmpty>No departments found.</CommandEmpty>
+                              <CommandGroup>
+                                {authDepartments.map((dep) => (
+                                  <CommandItem
+                                    key={dep.id}
+                                    value={dep.name}
+                                    onSelect={() => {
+                                      updateEmployeeForm.setValue(
+                                        "departmentId",
+                                        dep.id,
+                                        {
+                                          shouldValidate: true,
+                                        }
+                                      );
+                                    }}
+                                  >
+                                    <Check
+                                      className={
+                                        dep.id === field.value
+                                          ? "mr-2 h-4 w-4 opacity-100"
+                                          : "mr-2 h-4 w-4 opacity-0"
+                                      }
+                                    />
+                                    {dep.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setUpdateEmployeeModalOpen(false)}
+                  className="px-6"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updatingEmployee}
+                  className="px-6 bg-gradient-primary hover:opacity-90"
+                >
+                  {updatingEmployee ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Employee"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </div>
       </CustomModal>
 

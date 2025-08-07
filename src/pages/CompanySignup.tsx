@@ -62,6 +62,7 @@ interface GroupedTimezones {
 }
 
 const CompanySignup = () => {
+  console.log("CompanySignup component rendering");
   const [timezones, setTimezones] = useState<GroupedTimezones | null>(null);
   const [loadingTimezones, setLoadingTimezones] = useState(true);
 
@@ -90,10 +91,30 @@ const CompanySignup = () => {
   useEffect(() => {
     const fetchTimezones = async () => {
       try {
+        console.log("Fetching timezones...");
         const response = await axiosInstance.get("/company/timezones");
+        console.log("Timezones response:", response.data);
         setTimezones(response.data.data);
       } catch (error) {
         console.error("Error fetching timezones:", error);
+        // Set a default timezone structure to prevent the component from breaking
+        setTimezones({
+          Popular: [
+            {
+              value: "UTC",
+              label: "UTC (Coordinated Universal Time)",
+              offset: "+00:00",
+              currentTime: "Current UTC time",
+            },
+          ],
+          Africa: [],
+          America: [],
+          Asia: [],
+          Europe: [],
+          Pacific: [],
+          Australia: [],
+          Other: [],
+        });
       } finally {
         setLoadingTimezones(false);
       }
@@ -128,10 +149,10 @@ const CompanySignup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
-      <div className="w-full max-w-7xl grid lg:grid-cols-[60%_40%] xl:grid-cols-[65%_35%] bg-background rounded-2xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen flex bg-gradient-to-br from-background to-muted/20">
+      <div className="w-full grid lg:grid-cols-[60%_40%] xl:grid-cols-[65%_35%]">
         {/* Form Section */}
-        <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8 xl:p-12 overflow-y-auto max-h-screen">
+        <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8 xl:p-12 overflow-y-auto min-h-screen">
           <div className="w-full max-w-2xl mx-auto space-y-8">
             {/* Header */}
             <div className="space-y-2">
@@ -282,27 +303,35 @@ const CompanySignup = () => {
                           </FormControl>
                           <SelectContent>
                             {loadingTimezones ? (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="loading" disabled>
                                 Loading timezones...
                               </SelectItem>
-                            ) : timezones ? (
+                            ) : timezones &&
+                              Object.keys(timezones).length > 0 ? (
                               Object.entries(timezones).map(
                                 ([group, options]) => (
                                   <SelectGroup key={group}>
                                     <SelectLabel>{group}</SelectLabel>
-                                    {options.map((option) => (
-                                      <SelectItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
+                                    {Array.isArray(options) &&
+                                      options
+                                        .filter(
+                                          (option) =>
+                                            option.value &&
+                                            option.value.trim() !== ""
+                                        )
+                                        .map((option) => (
+                                          <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                          >
+                                            {option.label}
+                                          </SelectItem>
+                                        ))}
                                   </SelectGroup>
                                 )
                               )
                             ) : (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="no-timezones" disabled>
                                 No timezones found.
                               </SelectItem>
                             )}

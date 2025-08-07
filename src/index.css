@@ -153,9 +153,6 @@
   }
 }
 
-
-
-
 /* Prevent zoom on input focus for iOS */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   input[type="text"],
