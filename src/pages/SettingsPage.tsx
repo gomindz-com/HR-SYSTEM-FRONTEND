@@ -9,11 +9,7 @@ export default function SettingsPage() {
   const { authUser } = useAuthStore();
 
   // Check if user has permission to access company settings
-  const canAccessCompanySettings =
-    authUser?.role === "HR" ||
-    authUser?.role === "CEO" ||
-    authUser?.role === "CTO" ||
-    authUser?.role === "DIRECTOR";
+  const canAccessCompanySettings = authUser?.role === "HR";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -55,7 +51,7 @@ export default function SettingsPage() {
                   <div>
                     <h3 className="font-medium">Access Restricted</h3>
                     <p className="text-sm text-amber-700">
-                      Only HR and management can access company settings.
+                      Only HR can access company settings.
                     </p>
                   </div>
                 </div>
