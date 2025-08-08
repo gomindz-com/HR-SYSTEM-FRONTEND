@@ -17,16 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Clock,
   Calendar,
@@ -42,6 +32,7 @@ import {
   Timer,
 } from "lucide-react";
 import { AttendanceQrScanner } from "@/components/QR/AttendanceQrScanner";
+import EmployeeLeaveSection from "@/components/Leave/EmployeeLeaveSection";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
@@ -57,7 +48,6 @@ const EmployeePortal = () => {
   const { authUser, checkingAuth } = useAuthStore();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
-  const [leaveRequestOpen, setLeaveRequestOpen] = useState(false);
   const [scannerKey, setScannerKey] = useState(0);
 
   // Update time every second
@@ -81,61 +71,6 @@ const EmployeePortal = () => {
     // Force re-initialization of scanner for next use
     setScannerKey((prev) => prev + 1);
   };
-
-  const handleLeaveRequest = () => {
-    setLeaveRequestOpen(false);
-    // Handle leave request submission
-  };
-
-  // Mock attendance data
-  // Mock leave requests data
-  const leaveRequestsData = [
-    {
-      id: "001",
-      type: "Annual Leave",
-      startDate: "2024-02-15",
-      endDate: "2024-02-20",
-      days: 6,
-      status: "Approved",
-      reason: "Family vacation",
-    },
-    {
-      id: "002",
-      type: "Sick Leave",
-      startDate: "2024-01-28",
-      endDate: "2024-01-28",
-      days: 1,
-      status: "Pending",
-      reason: "Medical appointment",
-    },
-    {
-      id: "003",
-      type: "Personal Leave",
-      startDate: "2024-01-20",
-      endDate: "2024-01-21",
-      days: 2,
-      status: "Rejected",
-      reason: "Personal matters",
-    },
-    {
-      id: "004",
-      type: "Maternity Leave",
-      startDate: "2024-03-01",
-      endDate: "2024-05-01",
-      days: 60,
-      status: "Approved",
-      reason: "Maternity leave",
-    },
-    {
-      id: "005",
-      type: "Annual Leave",
-      startDate: "2024-12-25",
-      endDate: "2024-12-31",
-      days: 7,
-      status: "Pending",
-      reason: "Christmas holidays",
-    },
-  ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -601,168 +536,7 @@ const EmployeePortal = () => {
           </Card>
 
           {/* Leave Requests Table */}
-          <Card className="animate-fade-in">
-            <CardHeader className="pb-3 sm:pb-4 md:pb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                <CardTitle className="flex items-center text-base sm:text-lg md:text-xl">
-                  <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  Leave Requests
-                </CardTitle>
-
-                {/* Request Leave Dialog */}
-                <Dialog
-                  open={leaveRequestOpen}
-                  onOpenChange={setLeaveRequestOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      disabled={true}
-                      size="sm"
-                      className="w-full sm:w-auto h-9 sm:h-10"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Request Leave
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw]">
-                    <DialogHeader>
-                      <DialogTitle>Request Leave</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="leave-type">Leave Type</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select leave type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="annual">Annual Leave</SelectItem>
-                            <SelectItem value="sick">Sick Leave</SelectItem>
-                            <SelectItem value="personal">
-                              Personal Leave
-                            </SelectItem>
-                            <SelectItem value="maternity">
-                              Maternity Leave
-                            </SelectItem>
-                            <SelectItem value="paternity">
-                              Paternity Leave
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="start-date">Start Date</Label>
-                          <Input type="date" id="start-date" />
-                        </div>
-                        <div>
-                          <Label htmlFor="end-date">End Date</Label>
-                          <Input type="date" id="end-date" />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="reason">Reason</Label>
-                        <Textarea
-                          id="reason"
-                          placeholder="Please provide a reason for your leave request..."
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setLeaveRequestOpen(false)}
-                          className="flex-1"
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={handleLeaveRequest} className="flex-1">
-                          Submit Request
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 sm:p-4 md:p-6">
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
-                        Type
-                      </TableHead>
-                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
-                        Dates
-                      </TableHead>
-                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
-                        Days
-                      </TableHead>
-                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4">
-                        Status
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leaveRequestsData.map((request) => (
-                      <TableRow key={request.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
-                          {request.type}
-                        </TableCell>
-                        <TableCell className="py-2 sm:py-3 px-2 sm:px-4">
-                          <div className="text-xs sm:text-sm">
-                            <div>
-                              {new Date(request.startDate).toLocaleDateString()}
-                            </div>
-                            {request.startDate !== request.endDate && (
-                              <div className="text-muted-foreground text-xs">
-                                to{" "}
-                                {new Date(request.endDate).toLocaleDateString()}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
-                          {request.days}
-                        </TableCell>
-                        <TableCell className="py-2 sm:py-3 px-2 sm:px-4">
-                          {getStatusBadge(request.status)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Leave Balance - Mobile Responsive */}
-              <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
-                <div className="text-center p-2 sm:p-3 bg-blue-100 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-blue-600">
-                    18
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Days Available
-                  </p>
-                </div>
-                <div className="text-center p-2 sm:p-3 bg-yellow-100 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-yellow-600">
-                    7
-                  </p>
-                  <p className="text-xs text-muted-foreground">Days Used</p>
-                </div>
-                <div className="text-center p-2 sm:p-3 bg-gray-100 rounded-lg">
-                  <p className="text-sm sm:text-lg font-bold text-gray-600">
-                    2
-                  </p>
-                  <p className="text-xs text-muted-foreground">Pending</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EmployeeLeaveSection />
         </div>
       </div>
     </div>

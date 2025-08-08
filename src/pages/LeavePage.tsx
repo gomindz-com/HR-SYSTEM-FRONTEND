@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -18,142 +20,123 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Search, Plus, Check, X } from "lucide-react";
-
-const mockLeaveRequests = [
-  {
-    id: 1,
-    employeeName: "Ebrima Jallow",
-    leaveType: "Vacation",
-    startDate: "2024-06-20",
-    endDate: "2024-06-25",
-    days: 5,
-    reason: "Family trip to Basse",
-    status: "Pending",
-    appliedDate: "2024-06-10",
-  },
-  {
-    id: 2,
-    employeeName: "Fatou Camara",
-    leaveType: "Sick Leave",
-    startDate: "2024-06-12",
-    endDate: "2024-06-14",
-    days: 3,
-    reason: "Medical checkup",
-    status: "Approved",
-    appliedDate: "2024-06-09",
-  },
-  {
-    id: 3,
-    employeeName: "Lamin Sanyang",
-    leaveType: "Personal",
-    startDate: "2024-06-18",
-    endDate: "2024-06-18",
-    days: 1,
-    reason: "Personal matters",
-    status: "Rejected",
-    appliedDate: "2024-06-08",
-  },
-  {
-    id: 4,
-    employeeName: "Awa Ceesay",
-    leaveType: "Maternity",
-    startDate: "2024-07-01",
-    endDate: "2024-10-01",
-    days: 93,
-    reason: "Maternity leave",
-    status: "Pending",
-    appliedDate: "2024-06-01",
-  },
-  {
-    id: 5,
-    employeeName: "Modou Bah",
-    leaveType: "Annual",
-    startDate: "2024-06-15",
-    endDate: "2024-06-30",
-    days: 16,
-    reason: "Annual leave",
-    status: "Approved",
-    appliedDate: "2024-06-05",
-  },
-  {
-    id: 6,
-    employeeName: "Isatou Touray",
-    leaveType: "Sick Leave",
-    startDate: "2024-06-11",
-    endDate: "2024-06-13",
-    days: 3,
-    reason: "Flu recovery",
-    status: "Pending",
-    appliedDate: "2024-06-10",
-  },
-  {
-    id: 7,
-    employeeName: "Fatoumatta Danso",
-    leaveType: "Conference",
-    startDate: "2024-06-22",
-    endDate: "2024-06-24",
-    days: 3,
-    reason: "AI Conference in Dakar",
-    status: "Pending",
-    appliedDate: "2024-06-10",
-  },
-  {
-    id: 8,
-    employeeName: "Ndey Samba",
-    leaveType: "Business Trip",
-    startDate: "2024-06-16",
-    endDate: "2024-06-18",
-    days: 3,
-    reason: "BD meetings in Senegal",
-    status: "Approved",
-    appliedDate: "2024-06-09",
-  },
-];
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Calendar,
+  Search,
+  Check,
+  X,
+  MoreHorizontal,
+  AlertTriangle,
+} from "lucide-react";
+import { useLeaveStore } from "@/store/useLeaveStore";
+import { LeaveStatus } from "@/store/useLeaveStore";
 
 const LeavePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [requests, setRequests] = useState(mockLeaveRequests);
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState("all");
+  const [selectedComment, setSelectedComment] = useState<{
+    text: string;
+    employeeName: string;
+    leaveType: string;
+  } | null>(null);
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [selectedRequestForRejection, setSelectedRequestForRejection] =
+    useState<{
+      id: number;
+      employeeName: string;
+      leaveType: string;
+    } | null>(null);
 
-  const filteredRequests = requests.filter((request) => {
-    const matchesSearch =
-      request.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.leaveType.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || request.status.toLowerCase() === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const {
+    requests,
+    allRequestsPagination,
+    gettingLeaveRequests,
+    approveLeave,
+    rejectLeave,
+    approvingLeave,
+    rejectingLeave,
+    getLeaveRequests,
+    stats,
+    getLeaveStats,
+    gettingStats,
+  } = useLeaveStore();
 
-  const getStatusColor = (status: string) => {
+  // Load data on component mount and handle filter changes
+  useEffect(() => {
+    getLeaveRequests({
+      search: searchTerm,
+      status: statusFilter,
+      leaveType: leaveTypeFilter,
+    });
+  }, [searchTerm, statusFilter, leaveTypeFilter]);
+
+  // Load stats on component mount only
+  useEffect(() => {
+    getLeaveStats();
+  }, []);
+
+  const getStatusColor = (status: LeaveStatus) => {
     switch (status) {
-      case "Approved":
+      case LeaveStatus.APPROVED:
         return "bg-success/10 text-success";
-      case "Rejected":
+      case LeaveStatus.REJECTED:
         return "bg-destructive/10 text-destructive";
-      case "Pending":
+      case LeaveStatus.PENDING:
         return "bg-warning/10 text-warning";
       default:
         return "bg-muted/10 text-muted-foreground";
     }
   };
 
-  const handleApprove = (id: number) => {
-    setRequests((prev) =>
-      prev.map((req) => (req.id === id ? { ...req, status: "Approved" } : req))
-    );
+  const handleApprove = async (id: number) => {
+    await approveLeave(id.toString());
   };
 
-  const handleReject = (id: number) => {
-    setRequests((prev) =>
-      prev.map((req) => (req.id === id ? { ...req, status: "Rejected" } : req))
-    );
+  const handleRejectClick = (
+    id: number,
+    employeeName: string,
+    leaveType: string
+  ) => {
+    setSelectedRequestForRejection({ id, employeeName, leaveType });
+    setRejectReason("");
+    setIsRejectDialogOpen(true);
   };
 
-  const pendingCount = requests.filter((r) => r.status === "Pending").length;
-  const approvedCount = requests.filter((r) => r.status === "Approved").length;
-  const rejectedCount = requests.filter((r) => r.status === "Rejected").length;
-  const totalDays = requests.reduce((sum, r) => sum + r.days, 0);
+  const handleRejectSubmit = async () => {
+    if (!selectedRequestForRejection || !rejectReason.trim()) {
+      return;
+    }
+
+    await rejectLeave(
+      selectedRequestForRejection.id.toString(),
+      rejectReason.trim()
+    );
+    setIsRejectDialogOpen(false);
+    setSelectedRequestForRejection(null);
+    setRejectReason("");
+  };
+
+  const handleCommentClick = (
+    comment: string,
+    employeeName: string,
+    leaveType: string
+  ) => {
+    if (comment && comment.length > 50) {
+      setSelectedComment({ text: comment, employeeName, leaveType });
+      setIsCommentDialogOpen(true);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -174,7 +157,7 @@ const LeavePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-warning">
-              {pendingCount}
+              {gettingStats ? "..." : stats.pendingCount}
             </div>
             <p className="text-xs text-muted-foreground">Pending</p>
           </CardContent>
@@ -187,7 +170,7 @@ const LeavePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              {approvedCount}
+              {gettingStats ? "..." : stats.approvedCount}
             </div>
             <p className="text-xs text-muted-foreground">Approved</p>
           </CardContent>
@@ -200,7 +183,7 @@ const LeavePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {rejectedCount}
+              {gettingStats ? "..." : stats.rejectedCount}
             </div>
             <p className="text-xs text-muted-foreground">Rejected</p>
           </CardContent>
@@ -212,7 +195,9 @@ const LeavePage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{totalDays}</div>
+            <div className="text-2xl font-bold text-primary">
+              {gettingStats ? "..." : stats.totalDays}
+            </div>
             <p className="text-xs text-muted-foreground">Total leave taken</p>
           </CardContent>
         </Card>
@@ -224,7 +209,7 @@ const LeavePage = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Search requests..."
+              placeholder="Search by employee name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -241,11 +226,21 @@ const LeavePage = () => {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="vacation">Vacation</SelectItem>
+              <SelectItem value="sick">Sick</SelectItem>
+              <SelectItem value="annual">Annual</SelectItem>
+              <SelectItem value="maternity">Maternity</SelectItem>
+              <SelectItem value="study">Study</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          New Request
-        </Button>
       </div>
 
       {/* Leave Requests Table */}
@@ -254,6 +249,11 @@ const LeavePage = () => {
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Leave Requests
+            {gettingLeaveRequests && (
+              <span className="text-sm text-muted-foreground">
+                (Loading...)
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -265,61 +265,306 @@ const LeavePage = () => {
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Days</TableHead>
-                <TableHead>Reason</TableHead>
+                <TableHead>Comments</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">
-                    {request.employeeName}
-                  </TableCell>
-                  <TableCell>{request.leaveType}</TableCell>
-                  <TableCell>
-                    {new Date(request.startDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(request.endDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>{request.days}</TableCell>
-                  <TableCell className="max-w-48 truncate">
-                    {request.reason}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(request.status)}>
-                      {request.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {request.status === "Pending" && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-success hover:text-success hover:bg-success/10"
-                          onClick={() => handleApprove(request.id)}
-                        >
-                          <Check className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleReject(request.id)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
+              {requests.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    {gettingLeaveRequests
+                      ? "Loading leave requests..."
+                      : "No leave requests found"}
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                requests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell className="font-medium">
+                      {request.employee.name}
+                    </TableCell>
+                    <TableCell className="capitalize">
+                      {request.leaveType.toLowerCase().replace("_", " ")}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(request.startDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(request.endDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>{request.days}</TableCell>
+                    <TableCell className="max-w-48">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">
+                          {request.comments || "No comments"}
+                        </span>
+                        {request.comments && request.comments.length > 50 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                            onClick={() =>
+                              handleCommentClick(
+                                request.comments!,
+                                request.employee.name,
+                                request.leaveType
+                              )
+                            }
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(request.status)}>
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {request.status === LeaveStatus.PENDING && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-success hover:text-success hover:bg-success/10"
+                            onClick={() => handleApprove(request.id)}
+                            disabled={approvingLeave}
+                          >
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() =>
+                              handleRejectClick(
+                                request.id,
+                                request.employee.name,
+                                request.leaveType
+                              )
+                            }
+                            disabled={rejectingLeave}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination Info */}
+      {allRequestsPagination.totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            Showing{" "}
+            {(allRequestsPagination.page - 1) * allRequestsPagination.pageSize +
+              1}{" "}
+            to{" "}
+            {Math.min(
+              allRequestsPagination.page * allRequestsPagination.pageSize,
+              allRequestsPagination.total
+            )}{" "}
+            of {allRequestsPagination.total} results
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                getLeaveRequests({
+                  page: allRequestsPagination.page - 1,
+                  search: searchTerm,
+                  status: statusFilter,
+                  leaveType: leaveTypeFilter,
+                })
+              }
+              disabled={allRequestsPagination.page <= 1 || gettingLeaveRequests}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from(
+                { length: allRequestsPagination.totalPages },
+                (_, i) => i + 1
+              )
+                .filter((page) => {
+                  // Show first page, last page, current page, and pages around current
+                  const current = allRequestsPagination.page;
+                  const total = allRequestsPagination.totalPages;
+                  return (
+                    page === 1 ||
+                    page === total ||
+                    (page >= current - 1 && page <= current + 1)
+                  );
+                })
+                .map((page, index, array) => {
+                  // Add ellipsis if there's a gap
+                  const showEllipsisBefore =
+                    index > 0 && page - array[index - 1] > 1;
+
+                  return (
+                    <div key={page} className="flex items-center">
+                      {showEllipsisBefore && (
+                        <span className="px-2 text-muted-foreground">...</span>
+                      )}
+                      <Button
+                        variant={
+                          page === allRequestsPagination.page
+                            ? "default"
+                            : "outline"
+                        }
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() =>
+                          getLeaveRequests({
+                            page,
+                            search: searchTerm,
+                            status: statusFilter,
+                            leaveType: leaveTypeFilter,
+                          })
+                        }
+                        disabled={gettingLeaveRequests}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                getLeaveRequests({
+                  page: allRequestsPagination.page + 1,
+                  search: searchTerm,
+                  status: statusFilter,
+                  leaveType: leaveTypeFilter,
+                })
+              }
+              disabled={
+                allRequestsPagination.page >=
+                  allRequestsPagination.totalPages || gettingLeaveRequests
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Comment Dialog */}
+      <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              Leave Request Details
+            </DialogTitle>
+            <DialogDescription>
+              Employee:{" "}
+              <span className="font-semibold">
+                {selectedComment?.employeeName}
+              </span>{" "}
+              | Leave Type:{" "}
+              <span className="font-semibold capitalize">
+                {selectedComment?.leaveType?.toLowerCase().replace("_", " ")}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                Comments
+              </h4>
+              <div className="bg-muted/50 rounded-lg p-4 border">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {selectedComment?.text || "No comments provided"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Reject Leave Request
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to reject this leave request? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-3 border">
+              <p className="text-sm">
+                <span className="font-medium">Employee:</span>{" "}
+                {selectedRequestForRejection?.employeeName}
+              </p>
+              <p className="text-sm">
+                <span className="font-medium">Leave Type:</span>{" "}
+                <span className="capitalize">
+                  {selectedRequestForRejection?.leaveType
+                    ?.toLowerCase()
+                    .replace("_", " ")}
+                </span>
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reject-reason" className="text-sm font-medium">
+                Rejection Reason <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="reject-reason"
+                placeholder="Please provide a reason for rejecting this leave request..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="min-h-[100px] resize-none"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                This reason will be sent to the employee via email notification.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRejectDialogOpen(false);
+                setSelectedRequestForRejection(null);
+                setRejectReason("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectSubmit}
+              disabled={!rejectReason.trim() || rejectingLeave}
+            >
+              {rejectingLeave ? "Rejecting..." : "Reject Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
